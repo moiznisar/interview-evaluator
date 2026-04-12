@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interview Evaluator</title>
+    <style>
+        body { font-family: Arial; max-width: 700px; margin: 40px auto; padding: 20px; }
+        select, textarea, button { width: 100%; margin-bottom: 16px; padding: 10px; font-size: 14px; }
+        textarea { height: 120px; }
+        button { background: blue; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        .box { background: #f9f9f9; border: 1px solid #ddd; padding: 16px; margin-bottom: 12px; border-radius: 4px; }
+        .tag { display: inline-block; padding: 3px 8px; margin: 2px; border-radius: 3px; font-size: 13px; }
+        .green { background: #e0ffe0; color: green; }
+        .red { background: #ffe0e0; color: red; }
+    </style>
+</head>
+<body>
+
+    <h2>Interview Evaluator</h2>
+
+    <select id="question">
+        <option>Loading...</option>
+    </select>
+
+    <textarea id="answer" placeholder="Type your answer here..."></textarea>
+
+    <button onclick="submitAnswer()">Evaluate</button>
+
+    <p id="status"></p>
+
+    <div id="results" style="display:none">
+        <div class="box"><b>Score:</b> <span id="score"></span> / 100</div>
+        <div class="box"><b>Covered:</b> <div id="covered"></div></div>
+        <div class="box"><b>Missing:</b> <div id="missing"></div></div>
+        <div class="box"><b>Suggestions:</b><p id="suggestions"></p></div>
+        <div class="box"><b>Improved Answer:</b><p id="improved"></p></div>
+    </div>
+
+    <script>
+        fetch('http://localhost:8000/questions')
+            .then(r => r.json())
+            .then(data => {
+                const select = document.getElementById('question');
+                select.innerHTML = '<option value="">Choose a question...</option>';
+                data.forEach(q => {
+                    select.innerHTML += `<option value="${q.text}">[${q.domain}] ${q.text}</option>`;
+                });
+            });
+
+        async function submitAnswer() {
+            const question = document.getElementById('question').value;
+            const answer = document.getElementById('answer').value;
+
+            if (!question || !answer) {
+                document.getElementById('status').textContent = 'Please select a question and write an answer.';
+                return;
+            }
+
+            document.getElementById('status').textContent = 'Evaluating...';
+            document.getElementById('results').style.display = 'none';
+
+            const res = await fetch('http://localhost:8000/evaluate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question, user_answer: answer })
+            });
+
+            const data = await res.json();
+
+            document.getElementById('score').textContent = data.score;
+            document.getElementById('covered').innerHTML = data.covered_concepts.map(c => `<span class="tag green">${c}</span>`).join('');
+            document.getElementById('missing').innerHTML = data.missing_concepts.map(c => `<span class="tag red">${c}</span>`).join('');
+            document.getElementById('suggestions').textContent = data.suggestions;
+            document.getElementById('improved').textContent = data.improved_answer;
+
+            document.getElementById('status').textContent = '';
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+
+</body>
+</html>
