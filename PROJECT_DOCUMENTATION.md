@@ -1,4 +1,4 @@
-# Complete Project Documentation
+# Complete Project Documentation — Every Line Explained
 # AI-Powered Interview Answer Evaluator
 # Built by Moiz Nisar
 
@@ -7,19 +7,27 @@
 ## Table of Contents
 
 1. Project Overview
-2. Why We Built It This Way
-3. Tools and Technologies — What, Why, and Why Not Alternatives
-4. Project Structure — Every File Explained
-5. Database Design — Every Decision Explained
-6. The ML Pipeline — How It Works
-7. The RAG Pipeline — How It Works
-8. The API Layer — How It Works
-9. The Frontend
-10. Every Error We Faced and How We Fixed It
-11. Interview Questions — What If Scenarios
-12. Interview Questions — Why Not This Instead
-13. Lessons Learned
-14. How to Start the Project Every Time
+2. Tools and Technologies — What, Why, and Why Not Alternatives
+3. Project Setup — Every Command Explained
+4. `app/db/session.py` — Every Line Explained
+5. `app/db/models.py` — Every Line Explained
+6. `alembic/env.py` — Every Change Explained
+7. `app/core/embeddings.py` — Every Line Explained
+8. `app/core/similarity.py` — Every Line Explained
+9. `seed.py` — Every Line Explained
+10. `app/schemas/evaluation.py` — Every Line Explained
+11. `app/main.py` — Every Line Explained
+12. `app/core/rag.py` — Every Line Explained
+13. `app/api/routes/evaluate.py` — Every Line Explained
+14. `app/api/routes/questions.py` — Every Line Explained
+15. `index.html` — Every Section Explained
+16. Database Design — Every Decision Explained
+17. The ML Pipeline — How It All Connects
+18. The RAG Pipeline — How It All Connects
+19. Every Error We Faced and How We Fixed It
+20. Interview Questions — What If Scenarios
+21. Interview Questions — Why Not This Instead
+22. How to Start the Project Every Time
 
 ---
 
@@ -29,613 +37,703 @@
 
 An AI-Powered Interview Answer Evaluation System. When a user submits a technical interview answer the system:
 
-1. Converts the answer to a vector embedding using MiniLM
+1. Converts the answer into a vector embedding using MiniLM
 2. Searches PostgreSQL + pgvector for the closest reference answer
-3. Computes a weighted similarity score (50% semantic + 50% concept coverage)
+3. Computes a weighted similarity score combining semantic similarity and concept coverage
 4. Detects which key concepts were covered and which were missed
 5. Sends everything to LLaMA 3 via Groq API to generate improvement suggestions and a professional improved answer
-6. Saves the evaluation to the database for progress tracking
+6. Saves the full evaluation to the database for progress tracking
 7. Returns everything as a clean JSON response
 
 ### What Problem It Solves
 
-When someone prepares for technical interviews they write answers but don't know:
-- How correct their answer is
+When someone prepares for technical interviews they write or speak answers but have no way to know:
+- How correct their answer is compared to an ideal answer
 - What key concepts they missed
-- How to improve their answer
-- Whether their answer sounds professional
+- How to specifically improve their answer
+- What a professional version of their answer looks like
 
-This system solves all four problems automatically.
+This system solves all four problems automatically using real ML, not just keyword matching.
 
 ### Why This Project Is Strong for a Portfolio
 
-- It combines ML (embeddings, cosine similarity) with a production-grade API
-- It implements RAG architecture manually without abstractions like LangChain
-- It uses vector search via pgvector — a real production skill
-- It shows database design thinking with proper migrations
-- It demonstrates AI system design, not just "I called an API"
-- Every technical decision can be explained and defended
+- Combines real ML (embeddings, cosine similarity, vector search) with a production-grade API
+- Implements RAG architecture manually without LangChain — shows deep understanding
+- Uses pgvector for vector storage — a real production skill
+- Shows proper database design with foreign keys, migrations, and proper data types
+- Demonstrates full AI system design thinking
+- Every technical decision can be explained and defended in an interview
 
 ---
 
-## 2. Why We Built It This Way
-
-### Why a Backend-Only Approach
-
-The project was deliberately built backend-focused with Swagger UI as the primary testing interface. This was the right decision for several reasons:
-
-- The ML pipeline, RAG architecture, and database design are the impressive parts
-- A simple frontend was added later but it's not the focus
-- Backend-focused projects are easier to explain in technical interviews
-- Swagger UI auto-generates professional API documentation for free
-
-### Why We Learned First, Then Built
-
-Before writing a single line of code we covered five core concepts — vector embeddings, cosine similarity, PostgreSQL + pgvector, RAG architecture, and FastAPI. This approach meant:
-
-- Every line of code had a reason behind it
-- No blind copy-pasting from tutorials
-- Every concept can be explained in an interview
-- Debugging was easier because we understood the system
-
-### Why a Phased Build Strategy
-
-We built in four phases instead of all at once:
-- Phase 1: Database + Embeddings
-- Phase 2: Core API
-- Phase 3: RAG + LLM
-- Phase 4: Polish + Deploy
-
-This is how professional software is built. It shows engineering maturity. Each phase produced something testable before moving to the next.
-
----
-
-## 3. Tools and Technologies — What, Why, and Why Not Alternatives
-
----
+## 2. Tools and Technologies — What, Why, and Why Not Alternatives
 
 ### Python
-
-**What:** The programming language used for everything.
-
-**Why:** Python is the standard language for ML and AI work. All major ML libraries (sentence-transformers, scikit-learn) are Python-first.
-
-**Why not Java or JavaScript:** Those languages have weaker ML ecosystems. Python dominates this space.
+**What it is:** The programming language used for everything in this project.
+**Why we used it:** Python is the standard language for ML and AI. All major ML libraries are Python-first. The ecosystem is unmatched.
+**Why not JavaScript/Node.js:** JavaScript has weak ML support. Python dominates this space entirely.
+**Why not Java:** Java has verbose syntax and a weaker ML ecosystem for this type of project.
 
 ---
 
 ### FastAPI
-
-**What:** The web framework used to build the REST API.
-
-**Why:**
+**What it is:** A modern Python web framework for building REST APIs.
+**Why we used it:**
 - Auto-generates Swagger UI documentation with zero extra work
-- Built-in request/response validation via Pydantic
-- Async support for handling multiple requests efficiently
-- Modern, clean syntax — code is readable
+- Built-in Pydantic integration for automatic request/response validation
+- Async support for handling multiple simultaneous requests efficiently
 - Fastest Python web framework by benchmarks
 
-**Why not Flask:**
-Flask is older and requires more manual setup. No built-in Pydantic validation, no auto-generated docs. FastAPI is the modern standard for ML APIs specifically.
+**Why not Flask:** Flask requires manual setup for everything FastAPI provides automatically. No built-in validation, no auto-generated docs, no async by default.
 
-**Why not Django:**
-Django is a full-stack web framework designed for web applications with templates and admin panels. It's overkill for a pure API. FastAPI is purpose-built for APIs.
+**Why not Django:** Django is a full-stack web framework designed for web applications with templates. It is overkill for a pure REST API. FastAPI is purpose-built for APIs.
 
 ---
 
 ### PostgreSQL
-
-**What:** The relational database that stores questions, reference answers, embeddings, and evaluations.
-
-**Why:**
-- Industry standard for production databases
-- Supports pgvector extension for vector storage and search
-- Handles relational data (foreign keys between tables) cleanly
-- Free and open source
-- Used by most professional backend systems
-
-**Why not MySQL:**
-MySQL does not have a mature pgvector equivalent. pgvector is PostgreSQL-specific.
-
-**Why not SQLite:**
-SQLite is a file-based database good for small local applications. It doesn't support pgvector and can't handle concurrent requests well. Not suitable for a real API.
-
-**Why not MongoDB:**
-MongoDB is a NoSQL database. Our data is relational — questions have reference answers, evaluations link to questions. A relational database models this naturally. MongoDB would require manual relationship management.
+**What it is:** A powerful open-source relational database.
+**Why we used it:** Industry standard, supports pgvector extension, handles relational data naturally, free and open source.
+**Why not MySQL:** MySQL does not have a mature pgvector equivalent.
+**Why not SQLite:** File-based, no pgvector support, can not handle concurrent requests well.
+**Why not MongoDB:** NoSQL. Our data is relational. MongoDB does not support pgvector.
 
 ---
 
 ### pgvector
-
-**What:** A PostgreSQL extension that adds a new column type (VECTOR) and enables similarity search directly in SQL.
-
-**Why:**
-- Stores 384-dimensional embedding vectors natively in PostgreSQL
-- Enables cosine distance search with a single SQL query using the `<=>` operator
-- Keeps vector data alongside relational data in the same database
-- No separate infrastructure needed
-
-**Why not Pinecone:**
-Pinecone is a dedicated vector database. For our scale (hundreds of questions) it would be overengineering. It also requires a separate service, separate billing, and separate connection management. pgvector gives us the same capability inside our existing PostgreSQL.
-
-**Why not Chroma or Weaviate:**
-Same reason — separate services, separate infrastructure, unnecessary complexity for this scale. pgvector is simpler, cheaper, and integrated.
-
-**Interviewer follow-up:** At what scale would you switch to a dedicated vector database?
-Answer: When you have millions of vectors and need sub-millisecond search at high concurrency. pgvector handles hundreds of thousands of vectors comfortably. Beyond that, dedicated solutions like Pinecone or Weaviate have better indexing algorithms (HNSW at large scale).
+**What it is:** A PostgreSQL extension adding a VECTOR data type and similarity search.
+**Why we used it:** Stores 384-dimensional embeddings natively, enables cosine distance search with the <=> operator, keeps vector and relational data in one database, free.
+**Why not Pinecone:** Separate paid service, unnecessary for our scale (hundreds of questions). pgvector gives the same capability for free inside PostgreSQL.
+**Why not Chroma or Weaviate:** Same reason. Separate infrastructure for no benefit at this scale.
 
 ---
 
 ### SQLAlchemy + Alembic
-
-**What:** SQLAlchemy is the ORM (Object Relational Mapper) that lets us talk to PostgreSQL using Python classes instead of raw SQL. Alembic is the migration tool that tracks schema changes.
-
-**Why SQLAlchemy:**
-- Write Python classes, get database tables — no raw SQL needed
-- Type-safe queries that catch errors before they reach the database
-- Clean, readable code
-- Industry standard Python ORM
-
-**Why Alembic:**
-- Tracks every schema change as a versioned migration file
-- Changes can be applied (upgrade) or reversed (downgrade)
-- Anyone who clones the project just runs `alembic upgrade head` and gets the exact same schema
-- Like Git but for your database
-
-**Why not raw SQL:**
-Raw SQL strings in Python code are messy, hard to maintain, and vulnerable to SQL injection. SQLAlchemy prevents these problems.
-
-**Why not Django ORM:**
-Django ORM is tied to the Django framework. Since we're using FastAPI, SQLAlchemy is the natural choice.
+**What SQLAlchemy is:** An ORM that translates between Python objects and database tables.
+**What Alembic is:** A database migration tool that tracks and applies schema changes.
+**Why SQLAlchemy:** Define tables as Python classes, query using Python, type-safe, industry standard.
+**Why Alembic:** Every schema change is versioned. Changes can be applied or reversed. Like Git for your database.
+**Why not raw SQL:** Messy, hard to maintain, vulnerable to SQL injection.
 
 ---
 
 ### sentence-transformers (MiniLM)
-
-**What:** A Python library that provides pre-trained models for generating sentence embeddings. We use the `all-MiniLM-L6-v2` model specifically.
-
-**Why MiniLM specifically:**
-- 384-dimensional embeddings — small enough to be fast, large enough to be accurate
-- ~90MB model size — downloads quickly, runs on CPU without GPU
-- Excellent performance on semantic similarity tasks
-- Free, runs locally, no API costs
-- Used by thousands of production systems
-
-**Why not OpenAI embeddings:**
-OpenAI embeddings cost money per API call. During development and testing you'd generate hundreds of embeddings — the costs add up. MiniLM is free and runs locally. For learning and portfolio purposes it's the better choice.
-
-**Why not Word2Vec:**
-Word2Vec generates word-level embeddings, not sentence-level. "Overfitting is bad" would be three separate vectors, not one. For comparing full answers we need sentence embeddings.
-
-**Why not BERT directly:**
-sentence-transformers is built on BERT and fine-tuned specifically for semantic similarity tasks. Using raw BERT requires more setup and produces worse similarity scores for our use case.
+**What it is:** A Python library providing pre-trained models for generating sentence embeddings. We use all-MiniLM-L6-v2.
+**Why MiniLM:** 384-dimensional embeddings, 90MB model that runs on CPU, excellent semantic similarity performance, completely free, no API costs.
+**Why not OpenAI embeddings:** Costs money per API call. Development testing generates hundreds of calls.
+**Why not Word2Vec:** Word-level embeddings. We need sentence-level embeddings for comparing full answers.
 
 ---
 
-### scikit-learn (cosine_similarity)
-
-**What:** A general Python ML library. We use only one function from it — `cosine_similarity`.
-
-**Why:**
-- Reliable, tested implementation
-- One line of code
-- Part of the standard Python ML toolkit
-
-**Why not implement cosine similarity manually:**
-The formula is simple (dot product divided by product of magnitudes) but why reinvent something that works perfectly. In an interview you should know the formula but use the library.
+### scikit-learn
+**What it is:** A Python ML library. We use exactly one function from it — cosine_similarity.
+**Why:** Reliable tested implementation in one line of code.
 
 ---
 
 ### Groq API with LLaMA 3
-
-**What:** Groq is an AI inference service that runs LLaMA 3 models at very high speed. We use it to generate improvement suggestions and improved answers.
-
-**Why Groq:**
-- Free tier available — no credit card required to start
-- Extremely fast inference — responses in under a second
-- LLaMA 3 is a strong open-source model
-- Simple API similar to OpenAI
-
-**Why not OpenAI GPT-4:**
-GPT-4 costs money per token. For a learning/portfolio project with frequent testing, costs would accumulate quickly. Groq's free tier eliminates this concern entirely.
-
-**Why not run a local LLM (Ollama):**
-Running LLaMA 3 locally requires significant RAM (8-16GB) and is slow on CPU. For development and demo purposes, Groq's hosted inference is faster and more reliable.
-
-**Why not Anthropic Claude API:**
-Same reason as OpenAI — cost. Groq's free tier is purpose-built for this kind of project.
+**What it is:** An AI inference service running LLaMA 3 at high speed.
+**Why:** Completely free tier, sub-second inference, strong model, simple API.
+**Why not OpenAI:** Costs money per token. Development testing accumulates costs quickly.
+**Why not local LLM:** Requires 8-16GB RAM and is slow without a GPU.
 
 ---
 
 ### Docker
-
-**What:** A containerization platform that runs software in isolated containers. We used it specifically to run PostgreSQL + pgvector.
-
-**Why:**
-- pgvector couldn't be installed on local PostgreSQL 18 (Windows compatibility issue)
-- Docker provided a pre-built PostgreSQL 16 + pgvector image that works immediately
-- One command setup — no manual configuration
-- Containers are isolated from your system
-- Industry standard for development environments
-
-**Why not install PostgreSQL locally:**
-Our local PostgreSQL 18 didn't support pgvector on Windows. Docker solved this instantly with a pre-built image.
-
-**Why not use a cloud database:**
-Cloud databases cost money and require internet. A local Docker container is free, fast, and works offline.
+**What it is:** A platform that runs software in isolated containers.
+**Why:** pgvector could not be installed on local PostgreSQL 18 on Windows. Docker's pre-built pgvector image works immediately with one command.
+**Why not install locally:** Incompatibility with our PostgreSQL 18 on Windows.
 
 ---
 
-### Virtual Environment
+## 3. Project Setup — Every Command Explained
 
-**What:** An isolated Python environment for this project specifically.
+### Creating the Virtual Environment
 
-**Why:**
-- Different projects need different package versions
-- Without virtual environments, packages from different projects conflict
-- Keeps your global Python installation clean
-- `requirements.txt` captures the exact versions for reproducibility
+```bash
+python -m venv venv
+```
+`python -m venv` runs Python's built-in venv module.
+`venv` is the folder name for the virtual environment.
+Creates a private Python installation just for this project.
 
-**Why not install everything globally:**
-If Project A needs numpy 1.0 and Project B needs numpy 2.0, a global installation can only have one. Virtual environments give each project its own isolated space.
+```bash
+venv\Scripts\activate
+```
+Activates the virtual environment. After this, pip installs go into the project's private environment, not globally. You see `(venv)` in the terminal when it's active.
 
 ---
 
-### Pydantic
+### Installing Dependencies
 
-**What:** A data validation library built into FastAPI. Defines the shape of requests and responses.
+```bash
+pip install fastapi uvicorn sqlalchemy alembic psycopg2-binary pgvector sentence-transformers scikit-learn python-dotenv groq
+```
 
-**Why:**
-- Automatic validation — wrong input is rejected before reaching your code
-- Auto-generates Swagger UI documentation from your schemas
-- Type-safe — catches errors early
-- Clean, readable schema definitions
+Every package:
+- `fastapi` — the API framework
+- `uvicorn` — the server that runs FastAPI (FastAPI is the car body, uvicorn is the engine)
+- `sqlalchemy` — ORM translating Python to PostgreSQL
+- `alembic` — database migration tool
+- `psycopg2-binary` — the actual PostgreSQL driver (SQLAlchemy needs this but you never touch it directly — it is the USB cable)
+- `pgvector` — teaches SQLAlchemy to understand Vector column types
+- `sentence-transformers` — MiniLM embedding model
+- `scikit-learn` — cosine_similarity function
+- `python-dotenv` — reads .env file
+- `groq` — Groq API client
 
-**Why not validate manually:**
-Writing manual if-statements to validate every field is tedious, error-prone, and repetitive. Pydantic handles this automatically.
+```bash
+pip freeze > requirements.txt
+```
+`pip freeze` lists every installed package with exact version.
+`> requirements.txt` writes that list to the file.
+Anyone who clones the project runs `pip install -r requirements.txt` to get identical versions.
 
 ---
 
-## 4. Project Structure — Every File Explained
+### Starting Docker Container
 
-```
-interview-evaluator/
-├── app/
-│   ├── api/
-│   │   └── routes/
-│   │       ├── evaluate.py      
-│   │       └── questions.py     
-│   ├── core/
-│   │   ├── embeddings.py        
-│   │   ├── similarity.py        
-│   │   └── rag.py               
-│   ├── db/
-│   │   ├── models.py            
-│   │   └── session.py           
-│   ├── schemas/
-│   │   └── evaluation.py        
-│   └── main.py                  
-├── alembic/                     
-├── seed.py                      
-├── index.html                   
-├── requirements.txt
-├── .env                         
-├── .gitignore
-└── README.md
+```bash
+docker run --name pgvector-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=interview_evaluator -p 5432:5432 -d pgvector/pgvector:pg16
 ```
 
-**`app/db/session.py`** — Database connection setup. Creates the SQLAlchemy engine, session factory, Base class, and get_db dependency. Everything database-related starts here.
-
-**`app/db/models.py`** — Defines the three database tables as Python classes: Question, ReferenceAnswer, Evaluation. Alembic reads these to generate migrations.
-
-**`app/core/embeddings.py`** — Loads MiniLM once at module level and provides get_embedding() function. Called every time a user submits an answer.
-
-**`app/core/similarity.py`** — Provides compute_similarity() function. Takes two embeddings, returns a score 0-100.
-
-**`app/core/rag.py`** — The RAG pipeline. Builds the structured prompt and calls Groq LLM. Returns suggestions and improved answer as a string.
-
-**`app/schemas/evaluation.py`** — Pydantic schemas defining the shape of API requests and responses. Powers Swagger UI documentation automatically.
-
-**`app/api/routes/evaluate.py`** — The main POST /evaluate endpoint. Orchestrates the entire pipeline: embedding → retrieval → scoring → concept detection → LLM → save → respond.
-
-**`app/api/routes/questions.py`** — GET /questions and GET /history/{question_id} endpoints. Simple database queries.
-
-**`app/main.py`** — FastAPI app entry point. Creates the app, adds CORS middleware, registers routers, serves the frontend.
-
-**`alembic/`** — Migration files folder. Contains env.py (Alembic configuration) and versions/ (individual migration files).
-
-**`seed.py`** — One-time script that populates the database with questions, reference answers, key concepts, and pre-generated embeddings.
-
-**`index.html`** — Simple single-page frontend. Calls GET /questions to populate dropdown, calls POST /evaluate on submit, displays results.
-
-**`.env`** — Stores secrets (DATABASE_URL, GROQ_API_KEY). Never committed to GitHub.
-
-**`.gitignore`** — Tells Git which files to ignore. Blocks .env, venv/, __pycache__/.
-
-**`requirements.txt`** — Lists all Python dependencies with exact versions. Anyone who clones the project runs pip install -r requirements.txt to get the same setup.
+Every part:
+- `docker run` — create and start a new container
+- `--name pgvector-db` — name this container so we can reference it by name
+- `-e POSTGRES_PASSWORD=postgres` — set environment variable inside container: the PostgreSQL password
+- `-e POSTGRES_DB=interview_evaluator` — automatically create this database when container starts
+- `-p 5432:5432` — map Windows port 5432 to container port 5432. Format is host:container. This is why Python can connect to localhost:5432 and reach Docker PostgreSQL
+- `-d` — run in background (detached). Without this the container output fills your terminal
+- `pgvector/pgvector:pg16` — the Docker image. Comes with PostgreSQL 16 and pgvector pre-installed
 
 ---
 
-## 5. Database Design — Every Decision Explained
+### Initializing Alembic
 
-### Three Tables
-
-**questions**
+```bash
+alembic init alembic
 ```
-id       → primary key, auto-incremented
-text     → the question text
-domain   → ML / DL / DSA / System Design
-```
-
-Why domain column: Allows filtering questions by category. As the database grows users can practice specific domains.
-
-**reference_answers**
-```
-id          → primary key
-question_id → foreign key to questions.id
-answer      → the reference answer text
-key_concepts→ JSON list of key concepts
-embedding   → Vector(384) — the pgvector column
-```
-
-Why store embeddings in the database: Pre-computing and storing embeddings means we don't regenerate them on every request. The embedding for each reference answer is computed once during seeding and stored. This makes the API fast.
-
-Why JSON for key_concepts: Key concepts are a list of strings. JSON is the natural PostgreSQL type for lists. Stored as `["generalization", "noise", "training data"]`.
-
-Why Vector(384): MiniLM produces 384-dimensional embeddings. The dimension must match exactly when doing similarity search.
-
-**evaluations**
-```
-id               → primary key
-question_id      → foreign key to questions.id
-user_answer      → what the user submitted
-score            → weighted score 0-100
-covered_concepts → JSON list
-missing_concepts → JSON list
-suggestions      → LLM generated text
-improved_answer  → LLM generated text
-created_at       → timestamp with timezone, auto-set by PostgreSQL
-```
-
-Why store suggestions and improved_answer: Without storing these, you'd have to regenerate them every time — slow and costly. Storing means you can retrieve past evaluations with full feedback.
-
-Why created_at with server_default=func.now(): PostgreSQL sets this automatically — no code needed. Using server-side time means it's always accurate regardless of the client's timezone.
-
-### Foreign Key Relationships
-
-```
-questions (1) ──────< reference_answers (many)
-questions (1) ──────< evaluations (many)
-```
-
-One question can have multiple reference answers (future feature).
-One question can have many evaluations (user practices the same question multiple times).
-
-### Why Not Store User Information
-
-The current system has no authentication. Evaluations are stored but not linked to specific users. This was a deliberate simplification for the portfolio version. In a production system you'd add a users table and link evaluations to users.
+Creates the alembic/ folder, env.py, script.py.mako, and alembic.ini.
 
 ---
 
-## 6. The ML Pipeline — How It Works
+### Running Migrations
 
-### Step 1: Text to Vector
-
-When a user submits "Overfitting is when training accuracy is high but test accuracy is low":
-
-```python
-model = SentenceTransformer('all-MiniLM-L6-v2')
-embedding = model.encode(text).tolist()
-# Returns: [0.25, -0.79, 0.41, 0.12, ...] — 384 numbers
+```bash
+alembic revision --autogenerate -m "create initial tables"
 ```
+`--autogenerate` compares your SQLAlchemy models against the actual database and generates the migration file automatically.
+`-m` sets the description (like a Git commit message).
+Creates a file in alembic/versions/ with upgrade() and downgrade() functions.
 
-These 384 numbers capture the semantic meaning of the sentence. Similar meanings produce similar numbers.
-
-### Step 2: Vector Similarity Search
-
-```python
-reference = db.query(ReferenceAnswer)\
-    .order_by(ReferenceAnswer.embedding.cosine_distance(user_embedding))\
-    .first()
+```bash
+alembic upgrade head
 ```
-
-pgvector compares the user's embedding against every stored reference answer embedding using cosine distance. Returns the closest match. This works even if the question is worded differently because it's matching meaning, not words.
-
-### Step 3: Weighted Scoring
-
-```python
-similarity_score = compute_similarity(reference.embedding, user_embedding)
-concept_score = (len(covered) / len(reference.key_concepts)) * 100
-final_score = round((similarity_score * 0.5) + (concept_score * 0.5), 2)
-```
-
-**Why weighted scoring:**
-Pure cosine similarity inflates scores for short vague answers. For example "Supervised learning is a type of machine learning where model learns from data" scores 86/100 on similarity alone because the sentence structure is close to the reference. But the user covered zero key concepts. The weighted approach correctly penalizes this — giving it 18/100.
-
-**50/50 split reasoning:**
-- Semantic similarity captures overall understanding
-- Concept coverage captures specific technical depth
-- Equal weighting balances both dimensions
-
-### Step 4: Concept Detection
-
-```python
-covered = [c for c in reference.key_concepts if c.lower() in request.user_answer.lower()]
-missing = [c for c in reference.key_concepts if c.lower() not in request.user_answer.lower()]
-```
-
-Simple but effective. Checks if each key concept string appears in the user's answer. Case insensitive matching.
-
-**Limitation:** This is keyword-based. If the user says "the model generalizes well" it won't detect "generalization" as covered. A more sophisticated approach would use embedding similarity per concept. This is noted as a future improvement.
+Applies all pending migrations. `head` means up to the most recent.
+After this, actual tables exist in PostgreSQL.
 
 ---
 
-## 7. The RAG Pipeline — How It Works
+### Running the API
 
-### What is RAG
-
-RAG stands for Retrieval Augmented Generation. It solves the hallucination problem in LLMs.
-
-**Without RAG:**
-You send "evaluate this answer about overfitting" to the LLM. The LLM guesses what a good answer looks like based on its training data. The feedback is generic and sometimes wrong.
-
-**With RAG:**
-You first RETRIEVE the correct reference answer from your database. Then you AUGMENT the LLM prompt with this real data. Then the LLM GENERATES feedback grounded in your specific reference — not guessing.
-
-### The Three Steps in Our System
-
-**R — Retrieval:**
-pgvector finds the closest reference answer to the user's answer using cosine distance. This is your database acting as a knowledge source.
-
-**A — Augmented:**
-We build a structured prompt containing:
-- The question
-- The correct reference answer (retrieved from database)
-- The user's answer
-- The similarity score
-- The missing concepts
-
-The LLM now has all the context it needs.
-
-**G — Generation:**
-LLaMA 3 receives this context-rich prompt and generates:
-- 2-3 specific improvement suggestions
-- A professional improved answer
-
-Because the prompt contains the correct reference answer, the LLM can't hallucinate what "good" looks like — it knows exactly.
-
-### Why We Built RAG Manually
-
-We deliberately did NOT use LangChain or LlamaIndex. Reasons:
-
-1. **Understanding** — building manually means you understand every step. With LangChain you call a function and magic happens. You can't explain it in an interview.
-
-2. **Control** — manual implementation means you can customize every aspect of the pipeline.
-
-3. **Interview credibility** — saying "I built the RAG pipeline manually without abstractions" is a strong signal. It shows real understanding.
-
-4. **Simplicity** — for our use case, LangChain would add complexity without benefit.
-
-### The Prompt Design
-
+```bash
+uvicorn app.main:app --reload
 ```
-You are an expert technical interviewer and educator. You are speaking 
-directly to the candidate. Address them using 'you' and 'your'.
-
-Question: {question}
-Reference Answer: {reference_answer}
-User's Answer: {user_answer}
-Similarity Score: {score}/100
-Missing Concepts: {missing_concepts}
-
-Please provide:
-SUGGESTIONS: 2-3 specific suggestions addressing the candidate directly
-IMPROVED ANSWER: A professional complete version
-```
-
-**Why format instructions matter:**
-Without telling the LLM the exact format, it might respond as a paragraph making parsing difficult. By specifying `SUGGESTIONS:` and `IMPROVED ANSWER:` as labels we can reliably split the response:
-
-```python
-parts = feedback.split("IMPROVED ANSWER:")
-suggestions = parts[0].replace("SUGGESTIONS:", "").strip()
-improved_answer = parts[1].strip()
-```
-
-**Why we tell the LLM to speak directly to the candidate:**
-Initially the LLM was saying "the user should..." which feels impersonal. Telling it to use "you" and "your" makes the feedback feel like a real mentor talking to you.
+- `app.main` — go to the app/ folder, find main.py
+- `:app` — use the variable named `app` inside main.py
+- `--reload` — automatically restart when you save any Python file
 
 ---
 
-## 8. The API Layer — How It Works
-
-### FastAPI App Creation
+## 4. `app/db/session.py` — Every Line Explained
 
 ```python
-app = FastAPI(
-    title="Interview Evaluator API",
-    description="AI-powered interview answer evaluation system",
-    version="1.0.0"
-)
+from dotenv import load_dotenv
 ```
-
-These metadata fields appear in Swagger UI automatically — making the documentation look professional.
-
-### CORS Middleware
+Import `load_dotenv` from python-dotenv. This function reads a .env file and loads its key-value pairs into the OS environment variables.
 
 ```python
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+from sqlalchemy import create_engine
 ```
+Import `create_engine`. Creates the actual database connection — everything flows through this engine.
 
-**What is CORS:**
-Cross-Origin Resource Sharing. Browsers block requests from one origin (your HTML file) to another origin (localhost:8000) by default for security. CORS middleware tells the browser it's okay to allow these requests.
+```python
+from sqlalchemy.orm import sessionmaker, declarative_base
+```
+`sessionmaker` — a factory that creates database sessions (conversations with the database).
+`declarative_base` — creates the Base class that all table models inherit from.
 
-**Why allow_origins=["*"]:**
-For development and portfolio this is fine — it allows any origin. In production you'd specify exact allowed domains like `allow_origins=["https://yourdomain.com"]`.
+```python
+import os
+```
+Python's built-in os module. We use it to read environment variables.
 
-### Dependency Injection (get_db)
+```python
+load_dotenv()
+```
+Read the .env file and load DATABASE_URL, SECRET_KEY, GROQ_API_KEY into OS environment variables. Without this, os.getenv() finds nothing.
+
+```python
+DATABASE_URL = os.getenv("DATABASE_URL")
+```
+`os.getenv("DATABASE_URL")` searches the OS environment variables for the key "DATABASE_URL" and returns its value.
+
+"DATABASE_URL" is in quotes because it is a string key you are looking up — like a dictionary key. The result is stored in the variable DATABASE_URL (no quotes) for use later.
+
+After this line, DATABASE_URL holds:
+`"postgresql://postgres:postgres@localhost:5432/interview_evaluator"`
+
+Breaking down that URL:
+- `postgresql://` — database driver
+- `postgres` — username
+- `:postgres` — password
+- `@localhost` — host (Docker maps port 5432 to your machine)
+- `:5432` — port
+- `/interview_evaluator` — database name
+
+```python
+engine = create_engine(DATABASE_URL)
+```
+Creates the SQLAlchemy engine — the actual connection to PostgreSQL. DATABASE_URL is passed without quotes because it is a variable holding the actual URL string, not the text "DATABASE_URL". The engine is the phone line between Python and the database.
+
+```python
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+```
+Creates a session factory called SessionLocal. Calling SessionLocal() creates a new database session.
+
+`autocommit=False` — changes are NOT saved automatically. You must call db.commit() explicitly. This gives control — make multiple changes and commit them together, or roll back if something fails.
+`autoflush=False` — queries are NOT sent automatically. You control when they run.
+`bind=engine` — sessions created by this factory use the engine above.
+
+```python
+Base = declarative_base()
+```
+Creates the Base class. Every model inherits from Base. Inheriting from Base tells SQLAlchemy this class represents a database table. Base.metadata contains the complete registry of all your tables — Alembic reads this to detect changes.
 
 ```python
 def get_db():
+```
+A FastAPI dependency function. FastAPI calls this automatically before each route that needs a database session.
+
+```python
     db = SessionLocal()
+```
+Create a new session. Opens a connection to PostgreSQL. Ready for queries.
+
+```python
     try:
+```
+Start a try block. Normal execution happens here.
+
+```python
         yield db
+```
+`yield` pauses the function and passes `db` to the route. Unlike `return` which stops completely, `yield` waits. FastAPI runs the route with this session. When the route finishes, FastAPI resumes get_db from after the yield.
+
+```python
     finally:
+```
+`finally` runs NO MATTER WHAT — whether the route succeeded or crashed. This guarantees cleanup.
+
+```python
         db.close()
 ```
+Close the session. Return the connection to the pool. Without this, connections accumulate and the database eventually runs out of available connections.
 
-**What yield does:**
-Unlike return which stops the function completely, yield pauses the function. FastAPI gives the session to the route, waits for the route to finish, then resumes get_db to run the finally block. This guarantees the session always closes — even if an error occurs.
+---
 
-**Why finally:**
-If the route crashes, the code after yield wouldn't run normally. finally runs regardless — success or error. This prevents session leaks.
+## 5. `app/db/models.py` — Every Line Explained
 
-### The Evaluate Route — Complete Flow
-
+```python
+from app.db.session import Base
 ```
-POST /evaluate receives request
-         ↓
-Pydantic validates EvaluationRequest
-         ↓
-get_db injects database session
-         ↓
-get_embedding(user_answer) → 384-dim vector
-         ↓
-pgvector cosine_distance search → closest ReferenceAnswer
-         ↓
-compute_similarity → similarity_score
-         ↓
-concept detection → covered, missing
-         ↓
-weighted_score = (similarity * 0.5) + (concept_coverage * 0.5)
-         ↓
-fetch question text for prompt
-         ↓
-generate_feedback → LLaMA 3 via Groq
-         ↓
-parse feedback → suggestions, improved_answer
-         ↓
-save Evaluation to database
-         ↓
-return EvaluationResponse
-         ↓
-Pydantic validates response
-         ↓
-JSON sent to client
+Import the Base class from session.py. All models inherit from this same Base instance so they are all registered in Base.metadata.
+
+```python
+from sqlalchemy import Column, Integer, String, ForeignKey, JSON, Float, DateTime, func
+```
+Import column types and utilities:
+- `Column` — defines a column
+- `Integer` — whole numbers
+- `String` — variable length text
+- `ForeignKey` — links to another table's column
+- `JSON` — stores Python lists/dicts as JSON
+- `Float` — decimal numbers
+- `DateTime` — date and time
+- `func` — SQL functions (we use func.now() for automatic timestamps)
+
+```python
+from pgvector.sqlalchemy import Vector
+```
+Import the Vector type from pgvector. Adds the vector column type to SQLAlchemy. Without pgvector installed, this import fails.
+
+---
+
+### The Question Model
+
+```python
+class Question(Base):
+```
+Python class inheriting from Base. SQLAlchemy knows this represents a database table.
+
+```python
+    __tablename__ = "questions"
+```
+The actual PostgreSQL table name. Must be a string. Convention is lowercase with underscores.
+
+```python
+    id = Column(Integer, primary_key=True)
+```
+The id column. Integer stores whole numbers. `primary_key=True` makes this the unique identifier. PostgreSQL auto-increments it (1, 2, 3...) — you never set it manually.
+
+```python
+    text = Column(String, nullable=False)
+```
+The question text column. `nullable=False` means this column cannot be empty. Every row must have a value. PostgreSQL enforces this — trying to insert a row without text raises an error.
+
+```python
+    domain = Column(String, nullable=False)
+```
+The domain column storing "ML", "DL", "DSA", or "System Design". Required for every question.
+
+---
+
+### The ReferenceAnswer Model
+
+```python
+class ReferenceAnswer(Base):
+    __tablename__ = "reference_answers"
+    id = Column(Integer, primary_key=True)
+```
+Same pattern — inherits from Base, defines table name, has auto-incrementing primary key.
+
+```python
+    question_id = Column(Integer, ForeignKey("questions.id"))
+```
+Foreign key column. Stores the id of the related question. `ForeignKey("questions.id")` tells PostgreSQL: this value must exist in the id column of the questions table. PostgreSQL enforces this — you cannot insert a reference_answer pointing to a non-existent question.
+
+```python
+    answer = Column(String, nullable=False)
+```
+The full reference answer text. Required.
+
+```python
+    key_concepts = Column(JSON, nullable=False)
+```
+Stores a Python list as JSON. Example stored value: `["generalization", "noise", "training data"]`. JSON type handles list-to-database-to-list conversion automatically.
+
+```python
+    embedding = Column(Vector(384), nullable=False)
+```
+The pgvector column. Stores 384 floating point numbers representing the semantic meaning of the answer. The 384 must match MiniLM's output dimension exactly. Required because similarity search is impossible without it.
+
+---
+
+### The Evaluation Model
+
+```python
+class Evaluation(Base):
+    __tablename__ = "evaluations"
+    id = Column(Integer, primary_key=True)
 ```
 
-### Pydantic Schemas
+```python
+    question_id = Column(Integer, ForeignKey("questions.id"))
+```
+Links this evaluation to a question. Enables GET /history/{question_id} — fetching all evaluations for one question.
+
+```python
+    user_answer = Column(String, nullable=False)
+```
+What the user actually submitted. Stored so users can see their past answers when reviewing history.
+
+```python
+    score = Column(Float, nullable=False)
+```
+The final weighted score. Float because scores have decimals like 87.12 or 43.06.
+
+```python
+    covered_concepts = Column(JSON, nullable=False)
+    missing_concepts = Column(JSON, nullable=False)
+```
+Lists of concepts stored as JSON arrays.
+
+```python
+    suggestions = Column(String, nullable=False)
+    improved_answer = Column(String, nullable=False)
+```
+Long text strings from the LLM. Can be multiple paragraphs.
+
+```python
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+```
+`DateTime(timezone=True)` — stores timestamp with timezone.
+`server_default=func.now()` — PostgreSQL sets this automatically when a row is inserted. Using server_default means PostgreSQL handles it, not Python code. More reliable across different timezones and server configurations.
+`nullable=False` — always required, but server_default ensures it is always set.
+
+---
+
+## 6. `alembic/env.py` — Every Change Explained
+
+### Change 1 — Load Database URL
+
+```python
+config = context.config  # already existed
+
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
+```
+
+`config = context.config` was already there. config is the Alembic configuration object.
+
+We added the three lines below it.
+
+`load_dotenv()` loads the .env file.
+
+`config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))` overrides the sqlalchemy.url setting from alembic.ini with the value from .env. This means the database URL lives in one place (.env) and both SQLAlchemy and Alembic use the same value. The password is never hardcoded in tracked files.
+
+### Change 2 — Point to Your Models
+
+Original:
+```python
+target_metadata = None
+```
+
+Changed to:
+```python
+from app.db.models import Base
+target_metadata = Base.metadata
+```
+
+`Base.metadata` is a SQLAlchemy object containing the complete definition of every table that inherited from Base — Question, ReferenceAnswer, Evaluation.
+
+`target_metadata = None` means Alembic is blind — it cannot see any tables and generates empty migrations.
+
+`target_metadata = Base.metadata` means Alembic can see all three tables and generates accurate migrations by comparing them against the actual database.
+
+---
+
+## 7. `app/core/embeddings.py` — Every Line Explained
+
+```python
+from sentence_transformers import SentenceTransformer
+```
+Import the SentenceTransformer class that provides access to pre-trained embedding models.
+
+```python
+model = SentenceTransformer('all-MiniLM-L6-v2')
+```
+Load the MiniLM model at MODULE LEVEL — outside any function.
+
+This runs once when Python first imports this file. The 90MB model downloads from HuggingFace on first run and caches permanently. Every subsequent run loads from cache in seconds.
+
+Why outside a function: if inside get_embedding(), the model reloads on every API request. Loading takes 2-3 seconds. That is catastrophically slow for an API. Module-level loading means the model is always ready in memory.
+
+```python
+def get_embedding(text):
+```
+A function taking one string parameter. Called when seeding the database and when users submit answers.
+
+```python
+    return model.encode(text).tolist()
+```
+Two operations chained:
+
+`model.encode(text)` — runs the text through MiniLM's tokenizer and 6 transformer layers. Outputs a numpy array of 384 floating point numbers. Similar sentences produce similar arrays. The numbers capture semantic meaning.
+
+`.tolist()` — converts the numpy array to a plain Python list. pgvector expects a Python list when storing. Numpy arrays look similar but are a different type that PostgreSQL's driver does not understand. `.tolist()` converts `numpy.array([0.23, -0.81, ...])` to `[0.23, -0.81, ...]`.
+
+---
+
+## 8. `app/core/similarity.py` — Every Line Explained
+
+```python
+from sklearn.metrics.pairwise import cosine_similarity
+```
+Import cosine_similarity from scikit-learn's pairwise metrics. Measures the angle between two vectors.
+
+```python
+def compute_similarity(embedding1, embedding2):
+```
+Takes two embeddings — in your project always the reference embedding and user embedding.
+
+```python
+    score = cosine_similarity([embedding1], [embedding2])[0][0]
+```
+Four operations:
+
+`[embedding1]` and `[embedding2]` — wrapping in square brackets creates 2D arrays. scikit-learn expects 2D arrays because it is designed for multiple pairs. Wrapping in brackets satisfies this for one pair.
+
+`cosine_similarity([embedding1], [embedding2])` — computes similarity. Returns a nested array like `[[0.8712]]`.
+
+`[0]` — gets the first row: `[0.8712]`
+`[0]` again — gets the first element: `0.8712`
+
+Result: a plain numpy float64.
+
+```python
+    return round(float(score) * 100, 2)
+```
+Three operations:
+
+`float(score)` — converts numpy float64 to a plain Python float. CRITICAL. Without this, PostgreSQL raises an error when storing the score because numpy's float64 is not recognized as a valid PostgreSQL numeric type.
+
+`* 100` — converts 0-1 similarity range to 0-100 scale.
+
+`round(..., 2)` — rounds to 2 decimal places. 87.1234567 becomes 87.12.
+
+---
+
+## 9. `seed.py` — Every Line Explained
+
+```python
+from app.db.session import SessionLocal
+```
+Import the session factory to create database sessions.
+
+```python
+from app.db.models import Question, ReferenceAnswer
+```
+Import models to create row objects.
+
+```python
+from app.core.embeddings import get_embedding
+```
+Import embedding function to generate vectors for reference answers.
+
+```python
+questions_data = [...]
+```
+A list of dictionaries. Each dictionary is one question with its reference answer and key concepts. This is the knowledge base the evaluation system compares against.
+
+```python
+db = SessionLocal()
+```
+Create a database session. Opens a connection to PostgreSQL.
+
+```python
+if db.query(Question).first():
+```
+`db.query(Question)` creates a SELECT query on the questions table.
+`.first()` executes it and returns the first row or None if empty.
+
+If any question exists, the condition is True — database already seeded.
+
+```python
+    print("Database already seeded")
+    db.close()
+    exit()
+```
+If already seeded: print message, close the session (important — always close what you open), exit the script. Prevents duplicate data if run twice.
+
+```python
+for item in questions_data:
+```
+Loop through every dictionary. Each iteration, `item` holds one dictionary:
+```python
+{
+    "question": "What is overfitting?",
+    "domain": "ML",
+    "answer": "Overfitting happens when...",
+    "key_concepts": ["noise", "training data", ...]
+}
+```
+
+```python
+    question = Question(
+        text=item["question"],
+        domain=item["domain"]
+    )
+```
+Create a Question object. Not saved yet — only in Python memory.
+
+`item["question"]` accesses the "question" key from the current dictionary. `item["domain"]` accesses "domain".
+
+`text=item["question"]` means set the text column to this value. Column name on left, value on right.
+
+```python
+    db.add(question)
+```
+Tell SQLAlchemy to track this object. Still not in database — queued.
+
+```python
+    db.commit()
+```
+Execute the INSERT. Question row physically written to PostgreSQL. PostgreSQL assigns an auto-incremented id.
+
+```python
+    db.refresh(question)
+```
+Fetch the latest data for this object from PostgreSQL. After commit, PostgreSQL assigned an id but the Python object does not automatically know it. db.refresh() gets the id.
+
+CRITICAL: The next step needs question.id. Without refresh, question.id is None and the foreign key fails.
+
+```python
+    embedding = get_embedding(item["answer"])
+```
+Call get_embedding with the reference answer text. Returns a list of 384 numbers.
+
+`item["answer"]` accesses the "answer" key — the reference answer text string.
+
+```python
+    reference_answer = ReferenceAnswer(
+        question_id=question.id,
+        answer=item["answer"],
+        key_concepts=item["key_concepts"],
+        embedding=embedding
+    )
+```
+Create a ReferenceAnswer object:
+- `question_id=question.id` — link to the question we just saved. Works because db.refresh() gave us the real id
+- `answer=item["answer"]` — the reference text
+- `key_concepts=item["key_concepts"]` — the list, stored as JSON
+- `embedding=embedding` — the 384-dimensional vector
+
+```python
+    db.add(reference_answer)
+    db.commit()
+```
+Queue and save to PostgreSQL.
+
+```python
+    print(f"Seeded: {item['question']}")
+```
+f-string progress output. `{item['question']}` is replaced with the actual question text.
+
+```python
+db.close()
+print("Seeding complete!")
+```
+Close the session and confirm completion.
+
+---
+
+## 10. `app/schemas/evaluation.py` — Every Line Explained
+
+```python
+from pydantic import BaseModel
+```
+Import BaseModel. All schema classes inherit from this to get automatic validation and JSON serialization.
+
+```python
+from datetime import datetime
+```
+Import datetime for type-hinting the created_at field in HistoryResponse.
 
 ```python
 class EvaluationRequest(BaseModel):
+```
+Defines what a user MUST send to POST /evaluate. Inheriting from BaseModel means FastAPI validates every incoming request against this.
+
+```python
     question: str
     user_answer: str
+```
+Two required string fields. If the user sends a request without either field, or sends the wrong type, FastAPI automatically returns a 422 Validation Error before your route function runs. You write zero validation code.
 
+```python
 class EvaluationResponse(BaseModel):
     question_id: int
     score: float
@@ -644,181 +742,790 @@ class EvaluationResponse(BaseModel):
     suggestions: str
     improved_answer: str
 ```
+Defines what POST /evaluate returns. FastAPI validates your return value against this before sending. Also generates the response documentation in Swagger UI automatically.
 
-**Why Pydantic:**
-- Automatically validates incoming requests — missing fields or wrong types return a 422 error with a clear message
-- Documents the API in Swagger UI automatically
-- Makes the API contract explicit and enforced
+```python
+class QuestionResponse(BaseModel):
+    id: int
+    text: str
+    domain: str
+```
+Shape of each question from GET /questions. Maps directly to Question model columns.
+
+```python
+class HistoryResponse(BaseModel):
+    id: int
+    user_answer: str
+    score: float
+    covered_concepts: list
+    missing_concepts: list
+    created_at: datetime
+```
+Shape of each evaluation from GET /history/{question_id}. Includes created_at as datetime so users see when each attempt was made.
 
 ---
 
-## 9. The Frontend
+## 11. `app/main.py` — Every Line Explained
 
-### What It Does
+```python
+from fastapi import FastAPI
+```
+Import FastAPI class.
 
-A single HTML file with three parts:
+```python
+from fastapi.middleware.cors import CORSMiddleware
+```
+Import CORSMiddleware. CORS (Cross-Origin Resource Sharing) is a browser security feature blocking requests from one origin to another. We need this so our HTML frontend can call the API.
 
-1. **JavaScript fetch** — calls GET /questions on page load to populate the dropdown
-2. **Form** — question dropdown + answer textarea + evaluate button
-3. **Results display** — score, concept tags, suggestions, improved answer
+```python
+from fastapi.responses import FileResponse
+```
+Allows FastAPI to return a file as an HTTP response. We use this to serve index.html.
 
-### Why So Simple
+```python
+from app.api.routes.evaluate import router as evaluate_router
+from app.api.routes.questions import router as questions_router
+```
+Import routers from route files. Renaming with `as` makes it clear what each router is.
 
-The frontend was intentionally kept minimal because:
-- The backend is the impressive part
-- Simple HTML is easy to explain to any interviewer including non-technical ones
-- No framework dependencies — just works in any browser
-- Easy to understand and modify
+```python
+app = FastAPI(
+    title="Interview Evaluator API",
+    description="AI-powered interview answer evaluation system",
+    version="1.0.0"
+)
+```
+Create the FastAPI application. title, description, version appear in Swagger UI automatically.
 
-### Why Served Through FastAPI
+```python
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+Add CORS middleware:
+`allow_origins=["*"]` — allow requests from any origin (wildcard). In production specify exact domains.
+`allow_methods=["*"]` — allow all HTTP methods.
+`allow_headers=["*"]` — allow all headers.
 
-Initially we opened index.html directly as a file:// URL. Browsers block API calls from file:// URLs for security (CORS policy). Serving index.html through FastAPI at http://localhost:8000 solves this — both the page and the API are on the same origin.
+Without this, the browser blocks fetch requests from index.html to the API.
+
+```python
+app.include_router(evaluate_router)
+app.include_router(questions_router)
+```
+Register both routers. Without these lines, POST /evaluate, GET /questions, GET /history do not exist.
 
 ```python
 @app.get("/")
 def root():
     return FileResponse("index.html")
 ```
+The root endpoint returns index.html. When you open http://localhost:8000, FastAPI sends the HTML file. This serves the frontend through FastAPI — solving the file:// CORS problem.
 
 ---
 
-## 10. Every Error We Faced and How We Fixed It
+## 12. `app/core/rag.py` — Every Line Explained
+
+```python
+from groq import Groq
+```
+Import the Groq API client class.
+
+```python
+import os
+from dotenv import load_dotenv
+```
+For reading the GROQ_API_KEY from .env.
+
+```python
+load_dotenv()
+```
+Load .env into environment variables.
+
+```python
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+```
+Create the Groq client at module level. Created once when file is imported, reused across all requests. `os.getenv("GROQ_API_KEY")` fetches the API key from environment variables.
+
+```python
+def generate_feedback(question, user_answer, reference_answer, missing_concepts, score):
+```
+Five parameters: the question text, user's submitted answer, the correct reference answer from database, list of missing concepts, and the similarity score.
+
+```python
+    response = client.chat.completions.create(
+```
+Call the Groq API's chat completions endpoint. Send messages, receive a response.
+
+```python
+        model="llama-3.1-8b-instant",
+```
+Use LLaMA 3.1 with 8 billion parameters in Groq's instant (fast) mode.
+
+```python
+        messages=[
+```
+A list forming the conversation. LLMs work like a chat — you provide context and they continue it.
+
+```python
+            {
+                "role": "system",
+                "content": "You are an expert technical interviewer and educator. You are speaking directly to the candidate who just answered the question. Address them directly using 'you' and 'your'. Never refer to them as 'the user' or 'the candidate'."
+            },
+```
+The system message sets the LLM's persona. `"role": "system"` is an instruction about how to behave.
+
+This makes feedback say "Your answer captures..." instead of "The user's answer captures..." — direct address feels like a real mentor talking to you.
+
+```python
+            {
+                "role": "user",
+                "content": f"""
+Question: {question}
+
+Reference Answer: {reference_answer}
+
+User's Answer: {user_answer}
+
+Similarity Score: {score}/100
+
+Missing Concepts: {', '.join(missing_concepts)}
+
+Please provide:
+1. SUGGESTIONS: 2-3 specific, constructive suggestions directly addressing the candidate using 'you' and 'your'
+2. IMPROVED ANSWER: A professional, complete version of the answer
+
+Format your response exactly like this:
+SUGGESTIONS:
+[your suggestions here]
+
+IMPROVED ANSWER:
+[improved answer here]
+"""
+            }
+```
+The user message is the AUGMENTED prompt. Breaking it down:
+
+`f"""..."""` is a multi-line f-string. Variables in {curly braces} are replaced with actual values.
+
+`{question}` becomes the actual question text.
+`{reference_answer}` becomes the correct answer from your database — this is the RETRIEVAL result.
+`{user_answer}` becomes what the user submitted.
+`{score}` becomes the similarity number.
+`{', '.join(missing_concepts)}` converts `["noise", "generalization"]` to `"noise, generalization"`.
+
+The format instructions (SUGGESTIONS: and IMPROVED ANSWER: labels) are critical. They make the LLM response parseable by code. Without them the response is one paragraph that is hard to split.
+
+```python
+    result = response.choices[0].message.content
+```
+Extract the response text:
+`response.choices` — list of responses (usually one).
+`[0]` — first response.
+`.message.content` — the actual text string.
+
+```python
+    return result
+```
+Return the full feedback string to the evaluate route.
 
 ---
+
+## 13. `app/api/routes/evaluate.py` — Every Line Explained
+
+```python
+from fastapi import APIRouter, Depends
+```
+`APIRouter` — groups related endpoints. We define routes on a router and register the router with the main app.
+`Depends` — FastAPI's dependency injection. Automatically calls get_db before the route runs.
+
+```python
+from sqlalchemy.orm import Session
+```
+Type hint for the db parameter.
+
+```python
+from app.db.session import get_db
+from app.db.models import Question, ReferenceAnswer, Evaluation
+from app.schemas.evaluation import EvaluationRequest, EvaluationResponse
+from app.core.embeddings import get_embedding
+from app.core.similarity import compute_similarity
+from app.core.rag import generate_feedback
+```
+All necessary imports. Every component of the pipeline is imported here.
+
+```python
+router = APIRouter()
+```
+Create the router instance.
+
+```python
+@router.post("/evaluate", response_model=EvaluationResponse)
+```
+Decorator: handle POST requests to /evaluate. `response_model` validates and documents the response.
+
+```python
+def evaluate(request: EvaluationRequest, db: Session = Depends(get_db)):
+```
+`request: EvaluationRequest` — FastAPI validates the JSON body against EvaluationRequest and passes it as a typed object.
+`db: Session = Depends(get_db)` — FastAPI calls get_db automatically and passes the session as db.
+
+```python
+    user_embedding = get_embedding(request.user_answer)
+```
+Convert the user's answer text to a 384-dimensional vector.
+
+```python
+    reference = db.query(ReferenceAnswer)\
+        .order_by(ReferenceAnswer.embedding.cosine_distance(user_embedding))\
+        .first()
+```
+pgvector similarity search:
+
+`db.query(ReferenceAnswer)` — SELECT from reference_answers.
+`.order_by(ReferenceAnswer.embedding.cosine_distance(user_embedding))` — sort by cosine distance between each stored embedding and the user's embedding. Smallest distance (most similar) comes first. Uses pgvector's <=> operator.
+`.first()` — return the closest match.
+
+`reference` is a complete ReferenceAnswer object with all attributes.
+
+```python
+    similarity_score = compute_similarity(reference.embedding, user_embedding)
+```
+Raw cosine similarity score 0-100 between reference and user embeddings.
+
+```python
+    covered = [c for c in reference.key_concepts if c.lower() in request.user_answer.lower()]
+    missing = [c for c in reference.key_concepts if c.lower() not in request.user_answer.lower()]
+```
+List comprehensions for concept detection.
+
+`[c for c in reference.key_concepts if condition]` — create a list of concepts where condition is True.
+`c.lower()` — lowercase the concept.
+`request.user_answer.lower()` — lowercase the entire user answer.
+`c.lower() in request.user_answer.lower()` — check if concept string appears anywhere in the answer. Case insensitive.
+
+`covered` — concepts that appear.
+`missing` — concepts that do not appear.
+
+```python
+    concept_score = (len(covered) / len(reference.key_concepts)) * 100 if reference.key_concepts else 0
+```
+Concept coverage as percentage:
+`len(covered)` — how many concepts covered.
+`len(reference.key_concepts)` — total concepts.
+Division gives the ratio, multiplied by 100 gives percentage.
+`if reference.key_concepts else 0` — avoid division by zero if concept list is empty.
+
+```python
+    score = round((similarity_score * 0.5) + (concept_score * 0.5), 2)
+```
+Weighted final score. 50% semantic similarity + 50% concept coverage. `round(..., 2)` for 2 decimal places.
+
+```python
+    question = db.query(Question).filter(Question.id == reference.question_id).first()
+```
+Fetch question text for the RAG prompt.
+`.filter(Question.id == reference.question_id)` — WHERE id matches the question_id from the reference answer.
+
+```python
+    feedback = generate_feedback(
+        question=question.text,
+        user_answer=request.user_answer,
+        reference_answer=reference.answer,
+        missing_concepts=missing,
+        score=similarity_score
+    )
+```
+Call the RAG pipeline. We pass similarity_score (raw semantic score) rather than weighted score — the LLM feedback is more meaningful with the pure semantic similarity.
+
+```python
+    suggestions = ""
+    improved_answer = ""
+```
+Initialize empty strings to be filled by parsing.
+
+```python
+    if "IMPROVED ANSWER:" in feedback:
+        parts = feedback.split("IMPROVED ANSWER:")
+        suggestions = parts[0].replace("SUGGESTIONS:", "").strip()
+        improved_answer = parts[1].strip()
+    else:
+        suggestions = feedback
+        improved_answer = ""
+```
+Parse LLM response:
+
+`"IMPROVED ANSWER:" in feedback` — check if the LLM followed format instructions.
+`feedback.split("IMPROVED ANSWER:")` — split at the separator into two parts.
+`parts[0]` — everything before the separator (suggestions section).
+`parts[1]` — everything after (improved answer).
+`.replace("SUGGESTIONS:", "")` — remove the label.
+`.strip()` — remove leading/trailing whitespace.
+
+`else` handles cases where the LLM ignored format — puts everything in suggestions.
+
+```python
+    evaluation = Evaluation(
+        question_id=reference.question_id,
+        user_answer=request.user_answer,
+        score=score,
+        covered_concepts=covered,
+        missing_concepts=missing,
+        suggestions=suggestions,
+        improved_answer=improved_answer
+    )
+    db.add(evaluation)
+    db.commit()
+    db.refresh(evaluation)
+```
+Create, save, and refresh the evaluation. Same pattern as seeding. db.refresh() gets the auto-generated id and created_at.
+
+```python
+    return EvaluationResponse(
+        question_id=reference.question_id,
+        score=score,
+        covered_concepts=covered,
+        missing_concepts=missing,
+        suggestions=suggestions,
+        improved_answer=improved_answer
+    )
+```
+Return a typed response. FastAPI validates it against EvaluationResponse and converts to JSON.
+
+---
+
+## 14. `app/api/routes/questions.py` — Every Line Explained
+
+```python
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.db.session import get_db
+from app.db.models import Question, Evaluation
+from app.schemas.evaluation import QuestionResponse, HistoryResponse
+```
+Standard imports. QuestionResponse and HistoryResponse schemas for typed responses.
+
+```python
+router = APIRouter()
+```
+
+```python
+@router.get("/questions", response_model=list[QuestionResponse])
+```
+GET endpoint. `list[QuestionResponse]` — response is a list of questions. FastAPI validates each item.
+
+```python
+def get_questions(db: Session = Depends(get_db)):
+    questions = db.query(Question).all()
+    return questions
+```
+`db.query(Question).all()` — SELECT * FROM questions, return all rows as a list.
+FastAPI maps each Question object to QuestionResponse automatically (id → id, text → text, domain → domain).
+
+```python
+@router.get("/history/{question_id}", response_model=list[HistoryResponse])
+```
+`{question_id}` in the path is a URL parameter. FastAPI extracts it automatically.
+
+```python
+def get_history(question_id: int, db: Session = Depends(get_db)):
+    history = db.query(Evaluation).filter(Evaluation.question_id == question_id).all()
+    return history
+```
+`question_id: int` — FastAPI converts the URL string to an integer.
+`.filter(Evaluation.question_id == question_id)` — WHERE question_id = {the value from the URL}.
+`.all()` — return all matching evaluations.
+
+---
+
+## 15. `index.html` — Every Section Explained
+
+### HTML Structure
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interview Evaluator</title>
+```
+Standard HTML5 boilerplate. Title sets the browser tab name.
+
+### CSS Styles
+
+```css
+body { font-family: Arial; max-width: 700px; margin: 40px auto; padding: 20px; }
+```
+Centers content in 700px column. `margin: 40px auto` — 40px top margin, auto left/right centers the block.
+
+```css
+.box { background: #f9f9f9; border: 1px solid #ddd; padding: 16px; margin-bottom: 12px; border-radius: 4px; }
+```
+Reusable class for result sections. Light gray background, subtle border, rounded corners.
+
+```css
+.tag { display: inline-block; padding: 3px 8px; margin: 2px; border-radius: 3px; font-size: 13px; }
+.green { background: #e0ffe0; color: green; }
+.red { background: #ffe0e0; color: red; }
+```
+Concept tag styles. `display: inline-block` lets tags sit next to each other. Green for covered, red for missing.
+
+### The Form
+
+```html
+<select id="question">
+    <option>Loading...</option>
+</select>
+```
+Dropdown initially showing "Loading..." replaced by JavaScript when API loads questions.
+
+```html
+<textarea id="answer" placeholder="Type your answer here..."></textarea>
+```
+Multi-line text input for the answer.
+
+```html
+<button onclick="submitAnswer()">Evaluate</button>
+```
+Named `submitAnswer` (not `evaluate`) to avoid conflict with the built-in `document.evaluate()` browser method.
+
+### JavaScript — Loading Questions
+
+```javascript
+fetch('http://localhost:8000/questions')
+    .then(r => r.json())
+    .then(data => {
+        const select = document.getElementById('question');
+        select.innerHTML = '<option value="">Choose a question...</option>';
+        data.forEach(q => {
+            select.innerHTML += `<option value="${q.text}">[${q.domain}] ${q.text}</option>`;
+        });
+    });
+```
+`fetch(url)` makes an HTTP GET request. Returns a Promise.
+`.then(r => r.json())` parses the response as JSON when it arrives.
+`.then(data => {...})` runs when parsing is complete. `data` is the array of question objects.
+`document.getElementById('question')` finds the select element.
+`data.forEach(q => {...})` loops through each question.
+Template literal creates HTML option elements. The `value` is the question text — sent to the API when selected.
+
+### JavaScript — Evaluating
+
+```javascript
+async function submitAnswer() {
+    const question = document.getElementById('question').value;
+    const answer = document.getElementById('answer').value;
+```
+`async` — required because we use `await` inside.
+`.value` gets the current value from each form element.
+
+```javascript
+    if (!question || !answer) {
+        document.getElementById('status').textContent = 'Please select a question and write an answer.';
+        return;
+    }
+```
+Validation. `!question` is true if empty. Show error and stop.
+
+```javascript
+    const res = await fetch('http://localhost:8000/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, user_answer: answer })
+    });
+```
+`await` waits for the request to complete.
+`method: 'POST'` — POST request.
+`'Content-Type': 'application/json'` — tell server we are sending JSON.
+`JSON.stringify({...})` — convert JavaScript object to JSON string. `{ question, user_answer: answer }` maps the `answer` variable to `user_answer` key matching EvaluationRequest schema.
+
+```javascript
+    const data = await res.json();
+```
+Parse response body as JSON.
+
+```javascript
+    document.getElementById('covered').innerHTML = data.covered_concepts.map(c => `<span class="tag green">${c}</span>`).join('');
+```
+`.map(c => ...)` transforms each concept string into an HTML span element.
+`.join('')` joins all spans into one string.
+`.innerHTML = ...` renders the HTML (not plain text).
+
+```javascript
+    document.getElementById('suggestions').textContent = data.suggestions;
+    document.getElementById('improved').textContent = data.improved_answer;
+```
+`textContent` (not innerHTML) for plain text. Prevents any HTML in LLM output from being rendered as HTML.
+
+---
+
+## 16. Database Design — Every Decision Explained
+
+### Why Three Tables Not One
+
+One big table would repeat question and reference data for every evaluation. Three tables with foreign keys:
+- Store each question once in questions table
+- Store each reference answer once in reference_answers table
+- Store each evaluation in evaluations table, linked by foreign keys
+
+This is proper database normalization — no repeated data.
+
+### Why Foreign Keys
+
+Foreign keys enforce data integrity at the database level:
+- Cannot insert a reference_answer with a question_id that does not exist
+- Cannot delete a question that has linked reference answers or evaluations
+- PostgreSQL prevents orphaned data automatically
+
+### Why JSON for Lists
+
+key_concepts, covered_concepts, missing_concepts are all lists of strings. PostgreSQL's JSON type stores them natively with proper list-to-database-to-list conversion. The alternative (a separate concepts table) adds complexity for no benefit at this scale.
+
+### Why Vector(384)
+
+MiniLM always outputs 384-dimensional vectors — this is fixed by the model architecture. The database column dimension must match exactly.
+
+### Why server_default Instead of Python datetime.now()
+
+`server_default=func.now()` tells PostgreSQL to set the timestamp. The database is always the authoritative time source — consistent regardless of application server timezone or configuration. Python's `datetime.utcnow()` was deprecated in newer versions and relies on application-side time.
+
+---
+
+## 17. The ML Pipeline — How It All Connects
+
+End-to-end example:
+
+User submits: "Overfitting is when training accuracy is high but test is low"
+
+Step 1 — Embedding:
+```
+get_embedding("Overfitting is when training accuracy is high but test is low")
+MiniLM processes → [0.25, -0.79, 0.41, ...] (384 numbers)
+```
+
+Step 2 — pgvector Search:
+```
+SELECT * FROM reference_answers 
+ORDER BY embedding <=> [0.25, -0.79, 0.41, ...]
+LIMIT 1
+→ Returns: reference answer for "What is overfitting?" with its embedding, answer text, key concepts
+```
+
+Step 3 — Cosine Similarity:
+```
+compute_similarity([0.23, -0.81, ...], [0.25, -0.79, ...])
+cosine_similarity returns 0.8712
+float(0.8712) * 100 = 87.12
+```
+
+Step 4 — Concept Detection:
+```
+key_concepts = ["noise", "training data", "unseen data", "generalization", "regularization", ...]
+user_answer = "overfitting is when training accuracy is high but test is low"
+
+"noise" in answer? No → missing
+"training data" in answer? No (has "training" but not "training data") → missing
+"unseen data" in answer? No → missing
+...
+
+covered = []
+missing = ["noise", "training data", "unseen data", ...]
+```
+
+Step 5 — Weighted Score:
+```
+similarity_score = 87.12
+concept_score = (0/8) * 100 = 0
+final_score = (87.12 * 0.5) + (0 * 0.5) = 43.56
+```
+
+This is much more accurate than pure similarity. A short semantically-close answer gets a low score if it covers no concepts.
+
+---
+
+## 18. The RAG Pipeline — How It All Connects
+
+### Why RAG
+
+Without RAG, sending "evaluate this answer" to the LLM produces generic feedback based on the LLM's training knowledge. The LLM guesses what a good answer looks like. This is hallucination.
+
+With RAG:
+1. RETRIEVE the correct reference answer from your database
+2. AUGMENT the prompt with that real reference data
+3. GENERATE feedback grounded in your specific data
+
+The LLM sees the exact correct answer and exact missing concepts. Feedback is specific, not generic.
+
+### The Prompt Construction
+
+```python
+f"""
+Question: {question}           ← the actual question text
+Reference Answer: {reference}  ← RETRIEVED from database
+User's Answer: {user_answer}   ← what they submitted
+Similarity Score: {score}/100  ← computed by ML pipeline
+Missing Concepts: {', '.join(missing_concepts)}  ← detected by concept check
+
+SUGGESTIONS: ...
+IMPROVED ANSWER: ...
+"""
+```
+
+Every piece of context comes from either the database or the ML pipeline. The LLM has no need to guess anything.
+
+### Why Format Instructions Are Critical
+
+Without: "Your answer shows basic understanding but lacks depth. You should mention noise and generalization. Here is a better version: Overfitting occurs when..."
+
+This is one paragraph. Hard to split into suggestions vs improved answer reliably.
+
+With format instructions: "SUGGESTIONS:" and "IMPROVED ANSWER:" as clear labels means splitting on "IMPROVED ANSWER:" always works:
+```python
+parts = feedback.split("IMPROVED ANSWER:")
+suggestions = parts[0].replace("SUGGESTIONS:", "").strip()
+improved_answer = parts[1].strip()
+```
+
+---
+
+## 19. Every Error We Faced and How We Fixed It
 
 ### Error 1: pgvector Extension Not Available
 
-**Error message:**
+Full error:
 ```
 ERROR: extension "vector" is not available
 HINT: The extension must first be installed on the system
 ```
 
-**What happened:**
-pgvector is not included in standard PostgreSQL installations. Our local PostgreSQL 18 didn't have it.
+Root cause: pgvector is not included in standard PostgreSQL. Our local PostgreSQL 18 on Windows did not have it. pgvector requires separate installation — difficult on Windows with newer PostgreSQL versions.
 
-**Why it happened:**
-pgvector is a third-party extension that must be installed separately. On Windows this is particularly difficult with newer PostgreSQL versions.
+Important distinction: Python's `pgvector` package (pip install pgvector) and PostgreSQL's pgvector extension are completely separate things. The Python package teaches SQLAlchemy to understand Vector column types. The PostgreSQL extension adds the Vector type to the database itself. Both are required.
 
-**Fix:**
-Used Docker with the pre-built pgvector/pgvector:pg16 image which comes with pgvector already installed:
+Diagnosis: Error message was clear. Tried Stack Builder (PostgreSQL's GUI tool) but pgvector was not listed. pip install pgvector only installed the Python side, not the PostgreSQL side.
+
+Fix: Used Docker with the official pgvector pre-built image:
 ```bash
 docker run --name pgvector-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=interview_evaluator -p 5432:5432 -d pgvector/pgvector:pg16
 ```
 
-**Lesson:** When a system dependency causes compatibility issues, Docker is often the cleanest solution. It gives you a pre-configured environment that works immediately.
+Verification:
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+-- Result: CREATE EXTENSION (success)
+```
+
+Lesson: When a system dependency causes compatibility issues, Docker with a pre-configured image is often the cleanest solution. It eliminates the local installation problem entirely.
 
 ---
 
-### Error 2: Password Authentication Failed (Twice)
+### Error 2: Password Authentication Failed (Occurred Twice)
 
-**Error message:**
+Full error:
 ```
 FATAL: password authentication failed for user "postgres"
 ```
 
-**What happened:**
-Local PostgreSQL was running on port 5432 and intercepting connections before Docker could receive them. Appeared twice — once during Alembic migrations, once during API testing.
+Root cause: Local PostgreSQL (installed on Windows) starts automatically on boot and runs on port 5432. When code connects to localhost:5432, it reaches local PostgreSQL (wrong password) instead of Docker (correct password). Two services cannot share a port.
 
-**Why it happened:**
-Two PostgreSQL instances running on the same port. Local PostgreSQL starts automatically on Windows boot. When your code connects to port 5432, it hits the local one (wrong password) instead of Docker (correct password).
+First occurrence: During alembic revision command.
+Second occurrence: After computer restart, local PostgreSQL auto-started again.
 
-**Fix:**
-Stopped local PostgreSQL via services.msc and set its startup type to Manual so it never auto-starts again.
+Diagnosis: Password in .env was correct. Docker was running. Process of elimination — port conflict. Diagnostic command: `netstat -ano | findstr :5432` shows which processes use port 5432.
 
-**How to diagnose this yourself:**
-When you see a password error and you're sure your credentials are correct, ask: "Is something else intercepting this port?" Running `netstat -ano | findstr :5432` shows what's using the port.
+Fix:
+1. Opened services.msc (Win+R → services.msc)
+2. Found PostgreSQL service
+3. Right-clicked → Stop
+4. Right-clicked → Properties → Startup type → Manual (prevents auto-start on boot)
 
-**Lesson:** Two services cannot share the same port. Password authentication errors with correct credentials usually mean you're connecting to the wrong service.
+Lesson: "Password authentication failed" with correct credentials means you are connecting to the wrong service. Always check for port conflicts first. Two services cannot share one port.
 
 ---
 
 ### Error 3: pgvector Not Defined in Migration File
 
-**Error message:**
+Full error:
 ```
 NameError: name 'pgvector' is not defined
-LINE 1: ...embedding', np.float64...
+LINE 1: ...embedding', pgvector.sqlalchemy.vector.VECTOR(dim=384)...
 ```
 
-**What happened:**
-Alembic autogenerated the migration file but wrote the Vector column type as `pgvector.sqlalchemy.vector.VECTOR(dim=384)` without importing pgvector at the top of the file.
+Root cause: Alembic's autogenerate wrote the Vector column as `pgvector.sqlalchemy.vector.VECTOR(dim=384)` but did not add `import pgvector` at the top of the migration file. Python does not know what `pgvector` means without the import.
 
-**Why it happened:**
-Alembic's autogenerate feature doesn't always handle third-party column types correctly. It referenced pgvector without importing it.
+Diagnosis: NameError always means something was used without being imported. Checked the migration file imports — only standard sqlalchemy imports, no pgvector.
 
-**Fix:**
-Manually edited the migration file to add the import and fix the column reference:
+Fix: Manually edited the migration file:
+1. Added import at top:
 ```python
-# Added at top of migration file
 from pgvector.sqlalchemy import Vector
-
-# Changed in upgrade() function
-sa.Column('embedding', Vector(384), nullable=False),
+```
+2. Changed column definition:
+```python
+# From:
+pgvector.sqlalchemy.vector.VECTOR(dim=384)
+# To:
+Vector(384)
 ```
 
-**Lesson:** `NameError: name 'X' is not defined` always means X was never imported. Check the imports at the top of the file. For autogenerated files, always review them before running.
+Lesson: Alembic autogenerate works for standard types but sometimes fails for third-party types. Always review autogenerated migration files before running. `NameError: name 'X' is not defined` ALWAYS means X was never imported.
 
 ---
 
 ### Error 4: numpy float64 Type Error
 
-**Error message:**
+Full error:
 ```
 psycopg2.errors.InvalidSchemaName: schema "np" does not exist
 LINE 1: ...score', np.float64(87.12)...
 ```
 
-**What happened:**
-`compute_similarity` returned a numpy `float64` type. PostgreSQL doesn't understand numpy types — it expected a plain Python float.
+Root cause: scikit-learn returns numpy float64 values. When SQLAlchemy tried to insert `np.float64(87.12)` into PostgreSQL, the driver did not recognize it as a number. It tried to interpret `np` as a PostgreSQL schema name.
 
-**Why it happened:**
-scikit-learn's cosine_similarity returns numpy arrays with numpy types. When stored directly in PostgreSQL via SQLAlchemy, the numpy type confused the driver.
+Diagnosis: The SQL in the error message showed `np.float64(87.12)` — numpy's string representation was being sent as a literal value to PostgreSQL. This revealed the type was not being converted.
 
-**Fix:**
-Wrapped the score in `float()` to convert it to a plain Python float:
+Fix: Wrap score in `float()` in similarity.py:
 ```python
 return round(float(score) * 100, 2)
 ```
+`float()` converts numpy float64 to a plain Python float.
 
-**Lesson:** Always convert numpy types to plain Python types before storing in databases. `float()`, `int()`, and `.tolist()` are your friends. This is a very common mistake when mixing numpy with databases.
+Lesson: numpy types are NOT Python types despite looking similar. Always convert when storing in databases:
+- `float(numpy_float)` for floats
+- `int(numpy_int)` for integers  
+- `array.tolist()` for arrays
+
+This is one of the most common bugs when mixing numpy with databases.
 
 ---
 
-### Error 5: Swagger UI Showing Old Schema (Missing Fields)
+### Error 5: Swagger UI Showing Old Schema
 
-**What happened:**
-After adding `suggestions` and `improved_answer` to EvaluationResponse, Swagger UI and the API response still didn't show them.
+What happened: After adding suggestions and improved_answer to EvaluationResponse, the API response still did not include them. Even downloaded JSON files were missing the fields. Hardcoded test values also did not appear.
 
-**Why it happened:**
-Python caches compiled bytecode in `__pycache__` folders. FastAPI was loading the old cached version of the schema that didn't have the new fields. The openapi.json endpoint confirmed this — it showed the old schema without the new fields.
+Root cause: Python compiles .py files to bytecode stored in __pycache__ folders. FastAPI was loading the cached compiled version of evaluation.py that did not have the new fields.
 
-**Fix:**
-Cleared all Python cache files:
+Diagnosis: Checked http://localhost:8000/openapi.json — the schema did not contain suggestions or improved_answer. This confirmed FastAPI was reading old cached schema. Since the code was correct, the issue was cached bytecode.
+
+Fix:
 ```powershell
 Get-ChildItem -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force
 ```
+Then restart uvicorn.
 
-Then restarted uvicorn.
-
-**How to diagnose:**
-Check `http://localhost:8000/openapi.json` and search for your field name. If it's not there, the schema isn't being picked up. Clear cache and restart.
-
-**Lesson:** When schema changes don't appear in Swagger UI, clear `__pycache__`. Python's caching is aggressive and sometimes serves stale compiled files.
+Lesson: When code changes do not take effect, Python cache is often the culprit. Always check /openapi.json to verify what FastAPI has actually loaded. Clearing __pycache__ forces Python to recompile everything fresh.
 
 ---
 
 ### Error 6: CORS Blocking Frontend
 
-**What happened:**
-When opening index.html directly as a file:// URL, the browser blocked all API calls. The questions dropdown showed "Failed to load — is the API running?"
+What happened: Opening index.html as a file:// URL showed "Failed to load — is the API running?" The API was running fine.
 
-**Why it happened:**
-Browsers enforce a security policy called Same-Origin Policy. A file:// URL is treated as a unique origin. Requests from file:// to http://localhost:8000 are cross-origin and blocked.
+Root cause: Browsers enforce the Same-Origin Policy. A file:// URL is a unique security origin. Requests from file:// to http://localhost:8000 are cross-origin and blocked. CORS errors appeared in the browser console (F12).
 
-**Fix — Two parts:**
-
-1. Added CORS middleware to FastAPI:
+Fix part 1 — Add CORSMiddleware to FastAPI:
 ```python
 app.add_middleware(
     CORSMiddleware,
@@ -828,292 +1535,269 @@ app.add_middleware(
 )
 ```
 
-2. Served index.html through FastAPI instead of opening directly:
+Fix part 2 — Serve index.html through FastAPI:
 ```python
 @app.get("/")
 def root():
     return FileResponse("index.html")
 ```
+Now frontend at http://localhost:8000 and API at http://localhost:8000/evaluate are the same origin — no CORS issue.
 
-Now the frontend at http://localhost:8000 and the API at http://localhost:8000/evaluate are the same origin — no CORS issue.
-
-**Lesson:** Never open HTML files directly with file:// when they need to make API calls. Serve them through a web server instead.
+Lesson: Never open HTML files directly with file:// when they need to make API calls. Serve through a web server. Use the browser console (F12 → Console tab) to diagnose frontend issues.
 
 ---
 
-### Error 7: "evaluate" Reserved Word Conflict
+### Error 7: "evaluate" JavaScript Reserved Name
 
-**Error message:**
+Full error:
 ```
 Uncaught TypeError: Failed to execute 'evaluate' on 'Document': 
 2 arguments required, but only 0 present.
 ```
 
-**What happened:**
-The HTML button called `onclick="evaluate()"` but `document.evaluate()` is a built-in browser function. The browser tried to call the built-in instead of our custom function.
+Root cause: The browser's document object has a built-in method called evaluate() used for XPath queries. The button `onclick="evaluate()"` resolved to `document.evaluate()` (the built-in) instead of our custom function.
 
-**Fix:**
-Renamed our function from `evaluate()` to `submitAnswer()`:
+Diagnosis: Error said document.evaluate() requires 2 arguments. Our function took 0 — wrong number revealed it was calling the built-in.
+
+Fix: Renamed function to `submitAnswer()`:
 ```html
 <button onclick="submitAnswer()">Evaluate</button>
 ```
 
-**Lesson:** Avoid naming JavaScript functions the same as built-in browser methods. Common ones to avoid: evaluate, open, close, print, focus, blur.
+Lesson: Avoid naming JavaScript functions the same as built-in browser methods. Common conflicts: evaluate, open, close, print, focus, blur, name, status.
 
 ---
 
-### Error 8: Score Inflated for Short Answers
+### Error 8: Score Inflated for Incomplete Answers
 
-**What happened:**
-"Supervised learning is a type of machine learning where model learns from data" scored 86/100 despite covering zero key concepts.
+What happened: "Supervised learning is a type of machine learning where model learns from data" scored 86/100. Zero key concepts covered.
 
-**Why it happened:**
-Pure cosine similarity measures semantic closeness, not completeness. A short sentence that starts the same way as the reference gets a high similarity score because the embedding captures the general topic correctly.
+Root cause: Pure cosine similarity measures semantic closeness not completeness. The sentence opening is nearly identical to the reference answer opening. The embedding captures this high similarity even though all key content is missing.
 
-**Fix:**
-Implemented weighted scoring combining semantic similarity with concept coverage:
+Fix: Weighted scoring:
 ```python
 similarity_score = compute_similarity(reference.embedding, user_embedding)
 concept_score = (len(covered) / len(reference.key_concepts)) * 100
-final_score = round((similarity_score * 0.5) + (concept_score * 0.5), 2)
+score = round((similarity_score * 0.5) + (concept_score * 0.5), 2)
 ```
+Same answer now scores 18/100 — accurately reflecting its incomplete nature.
 
-Result: The same answer now correctly scores 18/100.
-
-**Lesson:** Single-metric evaluation is almost always insufficient. Real evaluation needs multiple dimensions. This is a good example of iterating on your system design based on observed behavior.
-
----
-
-## 11. Interview Questions — What If Scenarios
+Lesson: Single-metric evaluation is almost always insufficient. When a system produces counterintuitive results, investigate the root cause and improve the metric design.
 
 ---
 
-**Q: What if the user asks a question that isn't in your database?**
+## 20. Interview Questions — What If Scenarios
 
-A: The pgvector similarity search will still find the closest reference answer. It doesn't require an exact match — it finds the most semantically similar reference. However the evaluation quality degrades because the "closest" answer might be from a different topic entirely. 
+**Q: What if the user asks a question not in the database?**
 
-The proper fix is the DB fallback pattern: if the similarity score between the question and any stored question is below a threshold (say 0.5), generate a reference answer dynamically via LLM and cache it for future use. We noted this as a future improvement.
+pgvector still returns the closest reference answer — it does not require exact matches. But evaluation quality degrades if the submitted question is completely different from any stored question.
 
----
-
-**Q: What if the user writes a very long answer?**
-
-A: MiniLM has a maximum input length of 256 word pieces. Answers longer than this get truncated before embedding. For most interview answers this is fine. For very long answers some content at the end might be ignored during embedding, but the key concepts check still works on the full text.
+Proper solution (future improvement): Check similarity between submitted question and stored questions. If below a threshold (say 0.5), generate a reference dynamically via LLM, cache it in the database, and proceed with evaluation.
 
 ---
 
-**Q: What if the Groq API is down or rate limited?**
+**Q: What if the LLM does not follow the SUGGESTIONS/IMPROVED ANSWER format?**
 
-A: Currently the system would return a 500 error. The proper fix is a try/except around the generate_feedback call with a fallback response:
+The else branch handles this:
+```python
+else:
+    suggestions = feedback
+    improved_answer = ""
+```
+All feedback goes into suggestions. Evaluation still completes — score and concepts are unaffected. User sees suggestions but no improved answer.
+
+---
+
+**Q: What if two users evaluate simultaneously?**
+
+FastAPI handles concurrent requests correctly. Each request gets its own database session from get_db. SQLAlchemy manages connection pooling. PostgreSQL uses row-level locking for concurrent writes. No data corruption or race conditions.
+
+---
+
+**Q: What if the Groq API is down?**
+
+Currently returns a 500 error. Production fix:
 ```python
 try:
     feedback = generate_feedback(...)
 except Exception:
-    suggestions = "Feedback generation temporarily unavailable."
+    suggestions = "Feedback temporarily unavailable. Please try again."
     improved_answer = ""
 ```
-This would let the system return score and concepts even if the LLM fails.
+Score and concepts still returned even when LLM fails.
 
 ---
 
-**Q: What if two users submit answers simultaneously?**
+**Q: What if a user submits a very long answer?**
 
-A: FastAPI is async and handles concurrent requests. Each request gets its own database session from get_db. SQLAlchemy manages connection pooling. Multiple simultaneous requests work correctly without interference.
+MiniLM has a maximum of 256 word pieces. Longer answers are silently truncated before embedding. Concept detection still works on full text (string matching). For very long answers the semantic score may be less accurate.
 
----
-
-**Q: What if someone submits an answer in a different language?**
-
-A: MiniLM was trained primarily on English text. Non-English answers would get embeddings that don't compare well against English reference answers. The score would be meaningless. A multilingual model like `paraphrase-multilingual-MiniLM-L12-v2` would handle multiple languages.
+Fix: Chunk long answers, embed each chunk, average the embeddings. Or use a model with a longer context window.
 
 ---
 
-**Q: What if the database has 10,000 questions instead of 10?**
+**Q: What if the database grows to 100,000 questions?**
 
-A: pgvector handles this well. With proper indexing (HNSW or IVFFlat index) it can search millions of vectors efficiently. We'd add an index:
+Add an HNSW index to make similarity search logarithmic instead of linear:
 ```sql
 CREATE INDEX ON reference_answers USING hnsw (embedding vector_cosine_ops);
 ```
-This makes similarity search logarithmic instead of linear.
+pgvector handles millions of vectors with proper indexing. Without an index, every search scans every row.
 
 ---
 
-**Q: What if a user wants to track their progress over time?**
+**Q: What if concept detection misses a concept because the user used synonyms?**
 
-A: The evaluations table already stores all attempts with timestamps and scores. The GET /history/{question_id} endpoint returns this data. A progress dashboard would just visualize this data — plot score over time per question. The backend infrastructure for this already exists.
+Known limitation. Current detection is keyword-based. "The model generalizes well" does not match "generalization" as a concept.
 
----
-
-**Q: What if the key concepts list is incomplete or wrong?**
-
-A: The concept detection would be inaccurate. The system is only as good as the reference data. This is why data quality matters — the key concepts were carefully extracted and reviewed. In a production system you'd want domain experts to validate the key concepts for each question.
+Proper fix: Embedding-based concept detection. Generate embeddings for each key concept. Check cosine similarity between concept embedding and user answer segments. If above a threshold, mark as covered. This catches paraphrases and synonyms.
 
 ---
 
-**Q: What if someone wants to add new questions without touching the code?**
+**Q: What if you want to add user accounts?**
 
-A: Currently adding questions requires editing seed.py and re-running it. A proper solution would be a POST /questions endpoint that accepts a question, answer, and key concepts — generates the embedding automatically and saves everything. This is noted as a future improvement.
-
----
-
-## 12. Interview Questions — Why Not This Instead
-
----
-
-**Q: Why not use LangChain for the RAG pipeline?**
-
-A: LangChain is a framework that abstracts away the retrieval and prompt construction. Using it would mean calling high-level functions without understanding what happens underneath. We built the RAG pipeline manually — the retrieval query, the prompt construction, the response parsing — so every line can be explained. In an interview saying "I used LangChain" is much weaker than saying "I built the retrieval and augmentation steps manually." Understanding the internals is more valuable than knowing an abstraction.
+Add a users table and link evaluations to users:
+```python
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+```
+Add JWT authentication endpoints. Add user_id foreign key to Evaluation. Filter history by both question_id and user_id.
 
 ---
 
-**Q: Why not use OpenAI embeddings instead of MiniLM?**
+## 21. Interview Questions — Why Not This Instead
 
-A: OpenAI embeddings cost money per API call. During development you generate hundreds of embeddings for testing. The costs add up. MiniLM is free, runs locally, requires no internet connection, and performs excellently for semantic similarity. The 384-dimensional vectors are smaller and faster to work with than OpenAI's 1536-dimensional vectors. For a portfolio project MiniLM is the better choice.
+**Q: Why not LangChain for RAG?**
 
----
+LangChain abstracts retrieval and prompt construction into high-level calls. You call chain.run() without knowing what happens underneath. We built every step manually:
+- The pgvector similarity search (retrieval)
+- The f-string prompt construction (augmentation)
+- The Groq API call (generation)
+- The response parsing (extraction)
 
-**Q: Why not use a dedicated vector database like Pinecone?**
-
-A: For our scale (10-1000 questions) pgvector is perfectly sufficient. Using Pinecone would require a separate service, separate billing, and separate connection management. pgvector keeps everything in one database — relational data and vectors together. This simplifies the architecture, reduces infrastructure costs, and is easier to maintain. The rule of thumb: use pgvector until you have millions of vectors at high query concurrency, then consider dedicated vector databases.
-
----
-
-**Q: Why not use Flask instead of FastAPI?**
-
-A: Flask requires manual setup for everything FastAPI provides automatically — request validation, response validation, API documentation. With FastAPI, Pydantic schemas automatically generate Swagger UI. With Flask you'd write separate documentation. FastAPI is also faster (async by default) and more modern. For ML APIs specifically FastAPI has become the industry standard.
+Every line can be explained. In an interview "I built the RAG pipeline manually to understand the internals" is significantly stronger than "I used LangChain." Understanding the primitives is more valuable than knowing an abstraction.
 
 ---
 
-**Q: Why not store embeddings as plain arrays instead of using pgvector?**
+**Q: Why not OpenAI embeddings?**
 
-A: You could store embeddings as plain text or float arrays in PostgreSQL. But then you'd have to load ALL embeddings into Python memory, convert them, and compute similarities in Python. This is O(n) — it gets slower as your database grows. pgvector does the similarity computation inside the database using optimized C code and can use HNSW indexes for sub-linear search. The difference matters at scale.
+Three reasons:
+1. Cost — OpenAI charges per API call. Development generates hundreds of embedding calls.
+2. Latency — requires a network call. MiniLM runs locally, instant.
+3. Privacy — user answers leave your machine with OpenAI. MiniLM runs entirely locally.
 
----
-
-**Q: Why not use Docker Compose instead of running Docker manually?**
-
-A: Docker Compose is actually the better approach and was planned as a future improvement. With Docker Compose you'd define all services (PostgreSQL, the API) in a single docker-compose.yml file and start everything with one command. We ran Docker manually because it's simpler to understand for a learning project. Docker Compose is the production-ready approach.
-
----
-
-**Q: Why not use JWT authentication?**
-
-A: The current system has no user authentication — evaluations are stored but not linked to specific users. This was a deliberate simplification for the portfolio version. Adding JWT auth would require a users table, registration/login endpoints, token generation/validation, and protected routes. It was planned but deprioritized to keep focus on the ML and RAG components which are the core value.
+MiniLM's 384-dimensional embeddings are perfectly sufficient for semantic similarity on technical answers.
 
 ---
 
-**Q: Why not fine-tune the embedding model on interview data?**
+**Q: Why not Pinecone instead of pgvector?**
 
-A: Fine-tuning requires a large labeled dataset of interview question-answer pairs rated for similarity — data we don't have. MiniLM is already excellent for semantic similarity on technical text. Fine-tuning would improve performance marginally but require significant data collection and compute resources. For a portfolio project MiniLM is the pragmatic choice.
+For our scale (hundreds of questions), pgvector in PostgreSQL is architecturally simpler and equally performant.
 
----
+Pinecone adds: a separate paid service, separate API keys, separate connection management, external network latency, monthly cost.
 
-**Q: Why not use a NoSQL database like MongoDB?**
+pgvector gives: vector storage alongside relational data, same database connection, same transactions, free, faster (no external call).
 
-A: Our data is inherently relational. Questions have reference answers. Evaluations link to questions. PostgreSQL models these relationships naturally with foreign keys. MongoDB would require manual relationship management and doesn't support pgvector. There's no advantage to NoSQL here.
-
----
-
-## 13. Lessons Learned
-
-### Technical Lessons
-
-**1. Understand before you build**
-Learning vector embeddings, cosine similarity, pgvector, RAG, and FastAPI before writing code meant every line had a clear purpose. This is dramatically better than copy-pasting and hoping it works.
-
-**2. Single-metric evaluation is insufficient**
-The first version used pure cosine similarity. It inflated scores for short vague answers. Adding concept coverage as a second dimension produced much more accurate scores. Real evaluation always needs multiple dimensions.
-
-**3. Type safety matters**
-The numpy float64 error taught an important lesson — numpy types look like Python types but aren't. Always convert numpy types (float(), int(), .tolist()) before storing in databases.
-
-**4. Cache is sneaky**
-The __pycache__ issue where schema changes didn't appear taught that Python caches aggressively. When something isn't updating despite code changes, cache is often the culprit.
-
-**5. Port conflicts are common**
-Having two PostgreSQL instances on port 5432 caused two separate debugging sessions. Checking what's using a port before assuming a password error is the right diagnostic approach.
-
-**6. Build RAG manually first**
-Building the retrieval, augmentation, and generation steps manually gave complete understanding of the pipeline. If we had used LangChain we could use the tool but couldn't explain it. Manual first, abstraction later.
-
-**7. Format instructions in prompts matter**
-The LLM response format changed dramatically with clear format instructions. Without `SUGGESTIONS:` and `IMPROVED ANSWER:` labels, parsing the response reliably would have been impossible.
-
-### Process Lessons
-
-**1. Phased building reduces overwhelm**
-Building in phases — database first, then API, then LLM — meant each phase was testable before moving forward. No phase assumed a previous phase was working perfectly.
-
-**2. Understanding errors is more valuable than fixing them**
-Every error was explained — what happened, why it happened, how to recognize it in the future. This builds diagnostic skills that transfer to every future project.
-
-**3. Good naming matters**
-The `evaluate` function naming conflict with `document.evaluate()` showed that naming conflicts with built-ins cause mysterious bugs. Clear, specific naming prevents this.
-
-**4. README is part of the project**
-A professional README with architecture diagrams, technical decisions, and setup instructions is as important as the code itself. It's the first thing an interviewer sees.
+The engineering principle: do not add infrastructure you do not need. Pinecone makes sense at millions of vectors with very high query concurrency.
 
 ---
 
-## 14. How to Start the Project Every Time
+**Q: Why FastAPI over Flask?**
 
-Every time you want to work on this project, run these commands in order:
+Flask requires manual request parsing, separate validation library, separate documentation library, no async by default.
 
-### Step 1 — Navigate to project folder
+FastAPI provides automatic Pydantic validation, auto-generated Swagger UI from schemas, async by default, faster performance. For ML APIs FastAPI is the modern industry standard.
+
+---
+
+**Q: Why SQLAlchemy over raw SQL?**
+
+Raw SQL in Python strings: injection risk, verbose, hard to refactor, no type safety.
+
+SQLAlchemy: parameterized queries prevent injection, Pythonic and readable, type-safe, supports Alembic migrations.
+
+---
+
+**Q: Why Docker instead of installing PostgreSQL locally?**
+
+Our local PostgreSQL 18 did not support pgvector on Windows. Docker provided a pre-built image that works immediately.
+
+General answer: Docker provides reproducible environments. "It works on my machine" is a classic problem. With Docker, anyone who clones the project runs one command and gets the exact same setup.
+
+---
+
+**Q: Why not Django?**
+
+Django is a full-stack framework for web applications — HTML templates, admin panels, ORM tightly coupled to the framework. We are building a pure REST API. Django adds massive unnecessary complexity. FastAPI is purpose-built for APIs.
+
+---
+
+**Q: Why not MongoDB?**
+
+Our data is relational:
+- Questions have reference answers (one-to-many)
+- Questions have evaluations (one-to-many)
+- Foreign keys enforce these at the database level
+
+MongoDB would require manual relationship management, no pgvector support, loss of typed columns. There is no advantage to NoSQL here.
+
+---
+
+**Q: Why not add authentication?**
+
+Authentication was deprioritized to keep focus on the ML and RAG components — the core technical value. JWT auth is important but boilerplate. Adding it requires a users table, register/login endpoints, token generation/validation, and protected routes. This is clearly noted as a future improvement.
+
+---
+
+## 22. How to Start the Project Every Time
+
+Every time you work on this project run these commands in this exact order:
+
+### Step 1 — Navigate to Project Folder
 ```bash
 cd C:\Users\dell\Desktop\ML\interview-evaluator
 ```
 
-### Step 2 — Activate virtual environment
+### Step 2 — Activate Virtual Environment
 ```bash
 venv\Scripts\activate
 ```
-You should see (venv) at the start of your terminal.
+Confirm (venv) appears at the start of your terminal. Without activation, uvicorn cannot find installed packages.
 
-### Step 3 — Start Docker container
+### Step 3 — Start Docker Container
 ```bash
 docker start pgvector-db
 ```
+Container stops when computer shuts down. This starts it again. Open Docker Desktop first if it is not running.
 
 ### Step 4 — Start the API
 ```bash
 uvicorn app.main:app --reload
 ```
+Wait for: `INFO: Application startup complete.`
 
-### Step 5 — Open the app
-- Web Interface → http://localhost:8000
-- API Docs → http://localhost:8000/docs
+### Step 5 — Open the App
+- Web Interface: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
 
-### If something goes wrong
+---
 
-**Database connection error:**
-- Check Docker is running: `docker ps`
-- Make sure local PostgreSQL is stopped: services.msc → PostgreSQL → Stop
+### Troubleshooting
 
-**Schema changes not reflecting:**
+**"Password authentication failed":**
+Local PostgreSQL is running on port 5432. Open services.msc → find PostgreSQL → Stop it. Then retry.
+
+**Schema changes not reflected:**
 ```powershell
 Get-ChildItem -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force
 ```
-Then restart uvicorn.
+Restart uvicorn.
 
-**Port already in use:**
-```bash
-# Find what's using port 8000
-netstat -ano | findstr :8000
-# Kill it or use a different port
-uvicorn app.main:app --reload --port 8001
-```
-
-**After adding new questions to seed.py:**
-```bash
-# Clear existing data
-docker exec -it pgvector-db psql -U postgres -d interview_evaluator
-TRUNCATE TABLE evaluations, reference_answers, questions RESTART IDENTITY CASCADE;
-\q
-
-# Re-seed
-python seed.py
-```
+**Questions not loading in frontend:**
+Check uvicorn is running. Check Docker is running (`docker ps`). Open browser console (F12) for error messages.
 
 **After changing database models:**
 ```bash
@@ -1121,24 +1805,27 @@ alembic revision --autogenerate -m "describe your change"
 alembic upgrade head
 ```
 
+**To clear all test data and re-seed:**
+```bash
+docker exec -it pgvector-db psql -U postgres -d interview_evaluator
+```
+```sql
+TRUNCATE TABLE evaluations, reference_answers, questions RESTART IDENTITY CASCADE;
+\q
+```
+```bash
+python seed.py
+```
+
+**To push code changes to GitHub:**
+```bash
+git add .
+git commit -m "describe your changes"
+git push
+```
+
 ---
 
-## Final Summary
-
-This project demonstrates:
-
-- **ML Engineering** — vector embeddings, cosine similarity, semantic search
-- **Database Engineering** — relational design, vector storage, migrations
-- **API Engineering** — FastAPI, Pydantic, REST design, dependency injection
-- **AI Engineering** — RAG architecture, LLM integration, prompt engineering
-- **Software Engineering** — phased development, error handling, code organization
-- **DevOps basics** — Docker, virtual environments, Git
-
-Every component was built with understanding, not copy-pasting. Every decision can be explained and defended. Every error was diagnosed and fixed systematically.
-
-This is not a tutorial project. This is a real AI system.
-
----
-
-*Documentation written for Moiz Nisar's AI-Powered Interview Answer Evaluator*
-*Built with FastAPI, PostgreSQL, pgvector, sentence-transformers, and Groq LLaMA 3*
+*Complete documentation for every line of code, every decision, and every error.*
+*Built by Moiz Nisar — AI-Powered Interview Answer Evaluator*
+*FastAPI + PostgreSQL + pgvector + sentence-transformers + Groq LLaMA 3*
