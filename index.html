@@ -8,7 +8,7 @@
         textarea { height: 120px; }
         button { background: blue; color: white; border: none; cursor: pointer; border-radius: 4px; }
         .box { background: #f9f9f9; border: 1px solid #ddd; padding: 16px; margin-bottom: 12px; border-radius: 4px; }
-        .tag { display: inline-block; padding: 3px 8px; margin: 2px; border-radius: 3px; font-size: 13px; }
+        .tag { display: inline-block; padding: 3px 8px; margin: 3px 4px; border-radius: 3px; font-size: 13px; }
         .green { background: #e0ffe0; color: green; }
         .red { background: #ffe0e0; color: red; }
     </style>
@@ -69,7 +69,7 @@
             document.getElementById('score').textContent = data.score;
             document.getElementById('covered').innerHTML = data.covered_concepts.map(c => `<span class="tag green">${c}</span>`).join('');
             document.getElementById('missing').innerHTML = data.missing_concepts.map(c => `<span class="tag red">${c}</span>`).join('');
-            document.getElementById('suggestions').textContent = data.suggestions;
+            document.getElementById('suggestions').innerHTML = data.suggestions.replace(/\n/g, '<br>');
             document.getElementById('improved').textContent = data.improved_answer;
 
             document.getElementById('status').textContent = '';

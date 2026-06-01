@@ -12,7 +12,7 @@ def generate_feedback(question, user_answer, reference_answer, missing_concepts,
         messages=[
             {
                 "role": "system",
-                "content": "You are an expert technical interviewer and educator. You are speaking directly to the candidate who just answered the question. Address them directly using 'you' and 'your'. Never refer to them as 'the user' or 'the candidate'."
+                "content": "You are a helpful senior engineer giving feedback to a junior developer preparing for a technical job interview. You speak simply and directly — like a real person, not a textbook. You never use complicated academic words when simple ones work."
             },
             {
                 "role": "user",
@@ -23,16 +23,17 @@ User's Answer: {user_answer}
 Similarity Score: {score}/100
 Missing Concepts: {', '.join(missing_concepts)}
 
-"Please provide:
-1. SUGGESTIONS: 2-3 specific, constructive suggestions directly addressing the candidate using 'you' and 'your'
-2. IMPROVED ANSWER: A professional, complete version of the answer"
+Write an improved version of the user's answer that includes the missing concepts.
 
-Format your response exactly like this:
-SUGGESTIONS:
-[your suggestions here]
+RULES:
+- Exactly 3 sentences
+- Simple everyday words
+- The way someone would actually speak in a technical interview
+- Not an essay, not a textbook
 
+Format exactly like this:
 IMPROVED ANSWER:
-[improved answer here]
+[3 sentences]
 """
             }
         ]

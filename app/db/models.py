@@ -8,6 +8,7 @@ class Question(Base):
     id = Column(Integer, primary_key=True)
     text = Column(String, nullable=False)
     domain = Column(String, nullable=False)
+    difficulty = Column(String, nullable=False, server_default="easy")
 
 class ReferenceAnswer(Base):
     __tablename__ = "reference_answers"

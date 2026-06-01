@@ -28,24 +28,27 @@ def evaluate(request: EvaluationRequest, db: Session = Depends(get_db)):
 
     question = db.query(Question).filter(Question.id == reference.question_id).first()
 
-    feedback = generate_feedback(
-        question=question.text,
-        user_answer=request.user_answer,
-        reference_answer=reference.answer,
-        missing_concepts=missing,
-        score=similarity_score
-    )
-
-    suggestions = ""
-    improved_answer = ""
-
-    if "IMPROVED ANSWER:" in feedback:
-        parts = feedback.split("IMPROVED ANSWER:")
-        suggestions = parts[0].replace("SUGGESTIONS:", "").strip()
-        improved_answer = parts[1].strip()
+    if not missing:
+        suggestions = "Great answer! You covered all the key concepts."
+        improved_answer = "Your answer is already strong. Keep it concise and confident in the actual interview."
     else:
-        suggestions = feedback
+        bullet_points = "\n".join([f"• {concept}" for concept in missing])
+        suggestions = f"Your answer was missing these key points:\n{bullet_points}"
+
+        feedback = generate_feedback(
+            question=question.text,
+            user_answer=request.user_answer,
+            reference_answer=reference.answer,
+            missing_concepts=missing,
+            score=similarity_score
+        )
+
         improved_answer = ""
+        if "IMPROVED ANSWER:" in feedback:
+            parts = feedback.split("IMPROVED ANSWER:")
+            improved_answer = parts[1].strip()
+        else:
+            improved_answer = feedback
 
     evaluation = Evaluation(
         question_id=reference.question_id,
@@ -61,10 +64,10 @@ def evaluate(request: EvaluationRequest, db: Session = Depends(get_db)):
     db.refresh(evaluation)
 
     return EvaluationResponse(
-    question_id=reference.question_id,
-    score=score,
-    covered_concepts=covered,
-    missing_concepts=missing,
-    suggestions=suggestions,
-    improved_answer=improved_answer
+        question_id=reference.question_id,
+        score=score,
+        covered_concepts=covered,
+        missing_concepts=missing,
+        suggestions=suggestions,
+        improved_answer=improved_answer
     )
