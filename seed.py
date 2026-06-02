@@ -15,6 +15,12 @@ questions_data = [
             "regression",
             "predicts output",
             "training examples"
+        ],
+        "options": [
+            "Supervised learning uses labelled data where each example has an input and an expected output and is used for classification and regression",
+            "Supervised learning uses unlabelled data to find hidden patterns and clusters in the data",
+            "Supervised learning only works for image recognition tasks and cannot be used for text",
+            "Supervised learning does not require any training data and learns from rules written by humans"
         ]
     },
     {
@@ -31,6 +37,12 @@ questions_data = [
             "cross-validation",
             "early stopping",
             "too complex"
+        ],
+        "options": [
+            "Overfitting is when a model memorizes training data including noise so it fails on new data and can be prevented with regularization and cross-validation",
+            "Overfitting is when a model is too simple and cannot learn the training data properly",
+            "Overfitting only happens in deep learning and not in traditional machine learning models",
+            "Overfitting is when a model performs poorly on both training and test data at the same time"
         ]
     },
     {
@@ -46,6 +58,12 @@ questions_data = [
             "linear regression",
             "continuous output",
             "discrete output"
+        ],
+        "options": [
+            "Classification predicts categories like spam or not spam while regression predicts continuous numbers like house prices",
+            "Classification predicts numbers and regression predicts categories — they are the opposite of what most people think",
+            "Classification and regression are both unsupervised learning techniques used for clustering data",
+            "Classification is only used in deep learning while regression is only used in traditional machine learning"
         ]
     },
     {
@@ -61,6 +79,12 @@ questions_data = [
             "easy to visualize",
             "can overfit",
             "depth of tree"
+        ],
+        "options": [
+            "A decision tree splits data into branches based on feature values where each leaf is a prediction and deep trees tend to overfit",
+            "A decision tree is a neural network with multiple layers that learns complex patterns from data",
+            "A decision tree can only be used for regression problems and not for classification",
+            "A decision tree requires all features to be numerical and cannot handle categorical data"
         ]
     },
     {
@@ -76,6 +100,12 @@ questions_data = [
             "bias variance tradeoff",
             "model complexity",
             "poor test performance"
+        ],
+        "options": [
+            "Overfitting is too complex and memorizes training data while underfitting is too simple and cannot learn — the goal is the bias variance tradeoff",
+            "Underfitting happens when you have too much training data and the model gets confused by the volume",
+            "Overfitting and underfitting are the same problem just described from different perspectives",
+            "Underfitting only happens in regression problems and overfitting only happens in classification problems"
         ]
     },
 
@@ -93,6 +123,12 @@ questions_data = [
             "weights adjusted during training",
             "image recognition",
             "natural language processing"
+        ],
+        "options": [
+            "Neural networks are brain-inspired models with input hidden and output layers where weights are adjusted during training for tasks like image recognition",
+            "Neural networks are rule-based systems where humans manually program every decision the model makes",
+            "Neural networks can only be used for image recognition and have no applications in text or audio",
+            "Neural networks have no layers — they are a single mathematical function that maps inputs to outputs"
         ]
     },
     {
@@ -108,6 +144,12 @@ questions_data = [
             "can overfit",
             "hard to deploy",
             "requires powerful hardware"
+        ],
+        "options": [
+            "Deep learning needs lots of data expensive hardware and produces black box models that are hard to interpret and deploy",
+            "Deep learning has no limitations and always outperforms traditional machine learning in every situation",
+            "The only limitation of deep learning is that it requires a lot of data but hardware cost is never an issue",
+            "Deep learning models are always easy to interpret because they use simple mathematical operations"
         ]
     },
     {
@@ -123,6 +165,12 @@ questions_data = [
             "gradient descent",
             "output to input",
             "reduces error"
+        ],
+        "options": [
+            "Backpropagation trains neural networks by passing error backwards from output to input and using gradient descent to adjust weights",
+            "Backpropagation is a technique for collecting training data by feeding it forward through the network",
+            "Backpropagation only works for classification problems and cannot be used for regression",
+            "Backpropagation adjusts the architecture of the network by adding or removing layers during training"
         ]
     },
     {
@@ -138,6 +186,12 @@ questions_data = [
             "learns robust features",
             "only during training",
             "all neurons used at test time"
+        ],
+        "options": [
+            "Dropout randomly turns off neurons during training to prevent overfitting and force the network to learn robust features",
+            "Dropout permanently removes weak neurons from the network to make it smaller and faster",
+            "Dropout is applied at test time to make predictions more accurate by averaging multiple outputs",
+            "Dropout increases the learning rate during training to help the model converge faster"
         ]
     },
     {
@@ -154,6 +208,12 @@ questions_data = [
             "sequential data",
             "image recognition",
             "language modeling"
+        ],
+        "options": [
+            "CNNs use filters for spatial data like images while RNNs have memory for sequential data like text",
+            "CNNs are used for text processing and RNNs are used for image recognition — they are the opposite",
+            "CNNs and RNNs are identical architectures just trained on different datasets",
+            "RNNs use filters just like CNNs but apply them to time steps instead of spatial locations"
         ]
     },
 
@@ -170,6 +230,12 @@ questions_data = [
             "O log n",
             "unbalanced degrades to O n",
             "insert and delete"
+        ],
+        "options": [
+            "A BST has at most two children where left values are smaller and right values are greater giving O log n search but degrades to O n when unbalanced",
+            "A binary search tree stores all values in sorted order in an array and uses binary search to find elements",
+            "In a binary search tree the right subtree contains smaller values and the left subtree contains larger values",
+            "A binary search tree always has O 1 search time because it uses hashing to find elements directly"
         ]
     },
     {
@@ -185,6 +251,12 @@ questions_data = [
             "function calls",
             "undo operations",
             "task scheduling"
+        ],
+        "options": [
+            "Stack is LIFO with push and pop used for function calls while queue is FIFO with enqueue and dequeue used for task scheduling",
+            "Stack is FIFO and queue is LIFO — they follow opposite ordering principles to each other",
+            "Both stack and queue follow FIFO but stack uses different method names for adding and removing",
+            "Stacks are used for task scheduling and queues are used for function call management"
         ]
     },
     {
@@ -201,6 +273,12 @@ questions_data = [
             "top down",
             "bottom up",
             "overlapping subproblems"
+        ],
+        "options": [
+            "Dynamic programming breaks problems into overlapping subproblems storing results to avoid recalculation using memoization top down or tabulation bottom up",
+            "Dynamic programming is another name for recursion and both terms mean exactly the same thing",
+            "Dynamic programming only works for sorting problems and cannot be applied to graph or string problems",
+            "Dynamic programming always uses more memory than recursion and is therefore only used as a last resort"
         ]
     },
     {
@@ -216,13 +294,19 @@ questions_data = [
             "O n access for linked list",
             "faster insertion in linked list",
             "faster reading in array"
+        ],
+        "options": [
+            "Arrays have O 1 access via index in contiguous memory while linked lists have O n access but faster insertion and deletion",
+            "Linked lists are always faster than arrays for every operation because they use dynamic memory",
+            "Arrays and linked lists have identical time complexity for all operations but different memory usage",
+            "Arrays are faster for insertion and deletion while linked lists are faster for reading by index"
         ]
     },
     {
         "question": "What is Big O notation?",
         "domain": "DSA",
         "difficulty": "easy",
-        "answer": "Big O notation describes how the time or space requirements of an algorithm grow as the input size grows. It describes the worst case scenario. Common complexities are O 1 which is constant, O log n which is logarithmic, O n which is linear, O n squared which is quadratic, and O 2 to the n which is exponential. It helps compare algorithms regardless of hardware.",
+        "answer": "Big O notation describes how the time or space requirements of an algorithm grow as the input size grows. It describes the worst case scenario. Common complexities are O 1 constant O log n logarithmic O n linear O n squared quadratic and O 2 to the n exponential. It helps compare algorithms regardless of hardware.",
         "key_concepts": [
             "describes how algorithm grows",
             "worst case scenario",
@@ -231,6 +315,12 @@ questions_data = [
             "O n linear",
             "O n squared quadratic",
             "compare algorithms"
+        ],
+        "options": [
+            "Big O describes worst case growth of time or space as input grows with common complexities O 1 O log n O n and O n squared",
+            "Big O notation measures the exact running time of an algorithm in milliseconds on a specific machine",
+            "Big O notation only applies to sorting algorithms and cannot be used for other types of algorithms",
+            "Big O always describes the best case scenario so you know how fast an algorithm can possibly run"
         ]
     },
 
@@ -246,6 +336,12 @@ questions_data = [
             "each request is independent",
             "returns JSON",
             "simple and scalable"
+        ],
+        "options": [
+            "A RESTful API uses HTTP methods GET POST PUT DELETE is stateless and returns JSON making it simple and scalable",
+            "A RESTful API requires a persistent connection between client and server to work correctly",
+            "REST APIs can only use GET and POST methods — PUT and DELETE are not part of the REST standard",
+            "RESTful APIs always return XML data and cannot return JSON format"
         ]
     },
     {
@@ -261,6 +357,12 @@ questions_data = [
             "slows down writes",
             "B-tree index",
             "hash index"
+        ],
+        "options": [
+            "Indexing speeds up reads by allowing faster lookups but slows down writes because the index must also be updated",
+            "Database indexes speed up both reads and writes equally with no tradeoffs",
+            "Adding more indexes always improves database performance so you should index every column",
+            "Indexes only work for primary key columns and cannot be created on other columns"
         ]
     },
     {
@@ -276,6 +378,12 @@ questions_data = [
             "Redis or Memcached",
             "cache invalidation",
             "stale data"
+        ],
+        "options": [
+            "Caching stores frequently accessed data in a faster layer to reduce database load using tools like Redis with the main challenge being cache invalidation",
+            "Caching permanently stores all data in memory so the database is never needed again",
+            "Caching is only useful for write-heavy applications and has no benefit for read-heavy ones",
+            "The main challenge with caching is choosing between Redis and Memcached not managing stale data"
         ]
     },
     {
@@ -292,6 +400,12 @@ questions_data = [
             "horizontal scaling",
             "PostgreSQL MySQL",
             "MongoDB Redis"
+        ],
+        "options": [
+            "SQL uses structured tables with fixed schemas for relational data while NoSQL uses flexible formats for unstructured data and scales horizontally",
+            "NoSQL databases are always faster than SQL databases regardless of the use case",
+            "SQL and NoSQL databases are interchangeable and the choice between them does not matter",
+            "NoSQL databases support complex joins better than SQL databases which is why they are preferred"
         ]
     },
     {
@@ -307,6 +421,12 @@ questions_data = [
             "round robin",
             "least connections",
             "reliability"
+        ],
+        "options": [
+            "Load balancing distributes requests across servers to prevent overload improve availability and redirect traffic when a server goes down",
+            "Load balancing compresses all requests into a single server to process them more efficiently",
+            "Load balancing only works when all servers have identical hardware and software configurations",
+            "The purpose of load balancing is to reduce the number of servers needed by combining their capacity"
         ]
     },
 
@@ -323,6 +443,12 @@ questions_data = [
             "parentheses for tuple",
             "tuples are faster",
             "use tuple for fixed data"
+        ],
+        "options": [
+            "Lists are mutable with square brackets while tuples are immutable with parentheses and are faster for fixed data",
+            "Lists and tuples are identical in Python — the only difference is the syntax used to create them",
+            "Tuples are mutable and lists are immutable — tuples are used when you need to change the data",
+            "Lists use parentheses and tuples use square brackets — the opposite of what most people think"
         ]
     },
     {
@@ -338,6 +464,12 @@ questions_data = [
             "logging and timing",
             "authentication",
             "route registration"
+        ],
+        "options": [
+            "Decorators wrap functions using @ symbol to add behavior like logging authentication and route registration without modifying the original",
+            "Decorators permanently change the original function by adding new lines of code directly to it",
+            "Decorators can only be used for logging purposes and have no other practical applications",
+            "The @ symbol in Python is only used for matrix multiplication and has nothing to do with decorators"
         ]
     },
     {
@@ -352,13 +484,19 @@ questions_data = [
             "use is for None check",
             "identity vs equality",
             "different memory locations"
+        ],
+        "options": [
+            "== checks value equality while is checks if two variables point to the same object in memory — use is for None checks",
+            "== and is are completely identical operators in Python and can always be used interchangeably",
+            "The is operator checks if two values are equal and == checks if they are the same object in memory",
+            "You should always use is instead of == because it is faster and more accurate for all comparisons"
         ]
     },
     {
         "question": "What are *args and **kwargs in Python?",
         "domain": "Python",
         "difficulty": "medium",
-        "answer": "args allows a function to accept any number of positional arguments. They are collected into a tuple inside the function. kwargs allows a function to accept any number of keyword arguments. They are collected into a dictionary inside the function. You use args when you do not know how many positional arguments will be passed and kwargs for named arguments.",
+        "answer": "args allows a function to accept any number of positional arguments collected into a tuple inside the function. kwargs allows a function to accept any number of keyword arguments collected into a dictionary inside the function. You use args when you do not know how many positional arguments will be passed and kwargs for named arguments.",
         "key_concepts": [
             "args for positional arguments",
             "kwargs for keyword arguments",
@@ -366,6 +504,12 @@ questions_data = [
             "kwargs collected into dictionary",
             "unknown number of arguments",
             "flexible function signatures"
+        ],
+        "options": [
+            "args collects unknown positional arguments into a tuple and kwargs collects unknown keyword arguments into a dictionary",
+            "args and kwargs are just naming conventions — any variable name with * or ** works the same way",
+            "args collects keyword arguments and kwargs collects positional arguments — they are the opposite",
+            "args and kwargs can only be used together and cannot be used independently in a function"
         ]
     },
     {
@@ -380,6 +524,12 @@ questions_data = [
             "python -m venv to create",
             "activate before working",
             "independent from global Python"
+        ],
+        "options": [
+            "A virtual environment isolates packages per project preventing version conflicts and is created with python -m venv",
+            "A virtual environment is a cloud-based Python installation that runs on remote servers",
+            "Virtual environments are only needed when working with machine learning libraries not regular Python projects",
+            "You only need one virtual environment for all your projects since packages are shared anyway"
         ]
     },
 
@@ -395,6 +545,12 @@ questions_data = [
             "used to find specific rows",
             "index created automatically",
             "one per table"
+        ],
+        "options": [
+            "A primary key uniquely identifies each row cannot be null has no duplicates and gets an automatic index for fast lookups",
+            "A primary key is just a label for the table and does not have to be unique across rows",
+            "A table can have multiple primary keys as long as each one is unique within its own column",
+            "Primary keys are optional in databases and tables work fine without them"
         ]
     },
     {
@@ -409,6 +565,12 @@ questions_data = [
             "cannot insert non-existent value",
             "referential integrity",
             "prevents orphaned data"
+        ],
+        "options": [
+            "A foreign key references another table's primary key creating a link enforced by the database through referential integrity",
+            "A foreign key is a duplicate of the primary key stored in the same table for backup purposes",
+            "Foreign keys are optional hints to the database and are not actually enforced automatically",
+            "A foreign key must always reference the primary key of the same table it belongs to"
         ]
     },
     {
@@ -424,6 +586,12 @@ questions_data = [
             "normal forms",
             "store data in one place",
             "1NF 2NF 3NF"
+        ],
+        "options": [
+            "Normalization reduces redundancy by splitting tables and linking with foreign keys following normal forms like 1NF 2NF and 3NF",
+            "Normalization combines all tables into one large table to make queries simpler and faster",
+            "Database normalization is only necessary for databases with more than one million rows",
+            "Normalization always makes databases faster which is why every database should be fully normalized"
         ]
     },
     {
@@ -439,6 +607,12 @@ questions_data = [
             "aggregate functions",
             "COUNT SUM AVG",
             "WHERE cannot use aggregates"
+        ],
+        "options": [
+            "WHERE filters rows before grouping while HAVING filters groups after GROUP BY and can use aggregate functions like COUNT and SUM",
+            "WHERE and HAVING are completely interchangeable and can be used in place of each other in any query",
+            "HAVING filters rows before grouping and WHERE filters groups after aggregation — they are the opposite",
+            "WHERE can use aggregate functions like COUNT but HAVING cannot — that is the main difference between them"
         ]
     },
     {
@@ -455,6 +629,12 @@ questions_data = [
             "consistency",
             "isolation",
             "durability"
+        ],
+        "options": [
+            "A transaction groups operations as one unit where all succeed and commit or all fail and rollback following ACID properties",
+            "A transaction is just another word for a single SQL query and has no special properties",
+            "Transactions only apply to SELECT statements and cannot be used with INSERT UPDATE or DELETE",
+            "ACID stands for Arrays Columns Indexes and Data — the four components of every database transaction"
         ]
     },
 
@@ -471,6 +651,12 @@ questions_data = [
             "median not affected by outliers",
             "mode for categorical data",
             "sorted data for median"
+        ],
+        "options": [
+            "Mean is the average median is the middle value and mode is most frequent — median is best when outliers exist",
+            "Median is the average mean is the middle value and mode is the least frequent value in the dataset",
+            "Mean median and mode always give the same result when the dataset is large enough",
+            "Mode is the best measure of central tendency for all types of data including numerical data"
         ]
     },
     {
@@ -486,6 +672,12 @@ questions_data = [
             "understand distribution",
             "normalize data",
             "variance"
+        ],
+        "options": [
+            "Standard deviation measures spread from the mean — low means close together high means spread out and it is the square root of variance",
+            "Standard deviation measures the average value of a dataset just like the mean does",
+            "A high standard deviation always means the data has errors and needs to be cleaned",
+            "Standard deviation is the square of the variance not the square root"
         ]
     },
     {
@@ -501,13 +693,19 @@ questions_data = [
             "example ice cream and drowning",
             "ML finds correlations",
             "cannot always claim causation"
+        ],
+        "options": [
+            "Correlation means variables move together but causation means one causes the other — correlation does not imply causation",
+            "Correlation and causation mean the same thing — if two variables are correlated one must cause the other",
+            "Causation is always stronger than correlation and should always be preferred in data analysis",
+            "In machine learning we always establish causation not just correlation before making predictions"
         ]
     },
     {
         "question": "What is a normal distribution?",
         "domain": "Statistics",
         "difficulty": "medium",
-        "answer": "A normal distribution is a bell-shaped curve where most values cluster around the mean and fewer values appear as you move away from it. It is symmetric around the mean. About 68 percent of values fall within one standard deviation of the mean and 95 percent within two. Many real-world things follow a normal distribution like heights and test scores. It is important in ML for understanding feature distributions.",
+        "answer": "A normal distribution is a bell-shaped curve where most values cluster around the mean and fewer values appear as you move away from it. It is symmetric around the mean. About 68 percent of values fall within one standard deviation of the mean and 95 percent within two. Many real-world things follow a normal distribution like heights and test scores.",
         "key_concepts": [
             "bell shaped curve",
             "most values near the mean",
@@ -516,6 +714,12 @@ questions_data = [
             "95 percent within two",
             "real world examples",
             "feature distributions in ML"
+        ],
+        "options": [
+            "Normal distribution is a bell curve symmetric around the mean where 68 percent of values fall within one standard deviation",
+            "A normal distribution is skewed to the right which is why it is called normal — it is the most common shape",
+            "In a normal distribution exactly 50 percent of values fall within one standard deviation of the mean",
+            "Normal distributions only occur in artificial datasets and are never found in real-world data"
         ]
     },
     {
@@ -531,6 +735,12 @@ questions_data = [
             "reject null if p below threshold",
             "0.05 significance level",
             "statistical significance"
+        ],
+        "options": [
+            "Hypothesis testing uses null and alternative hypotheses and rejects the null when the p-value falls below 0.05",
+            "In hypothesis testing you always start by assuming the alternative hypothesis is true and try to disprove it",
+            "A p-value above 0.05 proves the alternative hypothesis is correct and the null hypothesis is wrong",
+            "Hypothesis testing is only used in medical research and has no applications in machine learning or data science"
         ]
     },
 
@@ -547,6 +757,12 @@ questions_data = [
             "race condition",
             "shared data problems",
             "lightweight than process"
+        ],
+        "options": [
+            "A process has its own memory while threads run inside a process sharing memory and can cause race conditions when accessing shared data",
+            "A process and a thread are the same thing — they are just different names for the same concept",
+            "Threads have their own separate memory space and cannot share data with other threads in the same process",
+            "Processes are faster than threads because they are smaller and use less memory"
         ]
     },
     {
@@ -562,13 +778,19 @@ questions_data = [
             "stack overflow",
             "factorial",
             "tree traversal"
+        ],
+        "options": [
+            "Recursion is when a function calls itself with a base case to stop it — without a base case it causes a stack overflow",
+            "Recursion is when two functions call each other in a loop and is always more efficient than iteration",
+            "The base case in recursion is optional — recursive functions work fine without one in most situations",
+            "Recursion can only be used for mathematical problems like factorial and has no use in data structures"
         ]
     },
     {
         "question": "What is object oriented programming?",
         "domain": "Python",
         "difficulty": "easy",
-        "answer": "Object oriented programming is a way of writing code by organizing it into objects that combine data and behavior. A class is a blueprint and an object is an instance of that class. The four main concepts are encapsulation which bundles data and methods together, inheritance which lets a class reuse code from another class, polymorphism which allows different classes to share the same interface, and abstraction which hides complexity.",
+        "answer": "Object oriented programming is a way of writing code by organizing it into objects that combine data and behavior. A class is a blueprint and an object is an instance of that class. The four main concepts are encapsulation which bundles data and methods together inheritance which lets a class reuse code from another class polymorphism which allows different classes to share the same interface and abstraction which hides complexity.",
         "key_concepts": [
             "objects combine data and behavior",
             "class is a blueprint",
@@ -577,6 +799,12 @@ questions_data = [
             "inheritance",
             "polymorphism",
             "abstraction"
+        ],
+        "options": [
+            "OOP organizes code into objects with a class as blueprint using encapsulation inheritance polymorphism and abstraction",
+            "Object oriented programming means writing all code inside functions and never using global variables",
+            "In OOP a class is an instance of an object — the class is created from the object not the other way around",
+            "OOP only has three pillars — encapsulation inheritance and polymorphism — abstraction is not part of OOP"
         ]
     },
     {
@@ -592,6 +820,12 @@ questions_data = [
             "clustering",
             "dimensionality reduction",
             "no labels in unsupervised"
+        ],
+        "options": [
+            "Supervised uses labelled data with correct outputs while unsupervised uses unlabelled data to find patterns like clustering",
+            "Supervised learning is always better than unsupervised learning and should be used whenever possible",
+            "Unsupervised learning uses labelled data and supervised learning uses unlabelled data — they are the opposite",
+            "Both supervised and unsupervised learning require labelled data — the difference is how the labels are used"
         ]
     },
     {
@@ -607,6 +841,12 @@ questions_data = [
             "branches",
             "GitHub for hosting",
             "version control"
+        ],
+        "options": [
+            "Git tracks code changes through commits lets you go back to previous versions and allows collaboration through branches",
+            "Git is a programming language used specifically for writing version control systems and CI/CD pipelines",
+            "GitHub and Git are the same thing — GitHub is just the command line version and Git is the website",
+            "Git only works for solo developers and cannot be used when multiple people work on the same project"
         ]
     }
 ]
@@ -634,7 +874,8 @@ for item in questions_data:
         question_id=question.id,
         answer=item["answer"],
         key_concepts=item["key_concepts"],
-        embedding=embedding
+        embedding=embedding,
+        options=item["options"]
     )
     db.add(reference_answer)
     db.commit()

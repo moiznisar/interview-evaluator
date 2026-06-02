@@ -25,3 +25,13 @@ class HistoryResponse(BaseModel):
     covered_concepts: list
     missing_concepts: list
     created_at: datetime
+
+class MCQRequest(BaseModel):
+    question_id: int
+    selected_option: str
+
+class MCQResponse(BaseModel):
+    correct: bool
+    selected_option: str
+    correct_answer: str
+    explanation: str

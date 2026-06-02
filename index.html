@@ -1,83 +1,355 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Interview Evaluator</title>
+    <title>Interview Prep</title>
     <style>
-        body { font-family: Arial; max-width: 700px; margin: 40px auto; padding: 20px; }
-        select, textarea, button { width: 100%; margin-bottom: 16px; padding: 10px; font-size: 14px; }
-        textarea { height: 120px; }
-        button { background: blue; color: white; border: none; cursor: pointer; border-radius: 4px; }
-        .box { background: #f9f9f9; border: 1px solid #ddd; padding: 16px; margin-bottom: 12px; border-radius: 4px; }
-        .tag { display: inline-block; padding: 3px 8px; margin: 3px 4px; border-radius: 3px; font-size: 13px; }
-        .green { background: #e0ffe0; color: green; }
-        .red { background: #ffe0e0; color: red; }
+        body { font-family: Arial; max-width: 800px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
+        h1 { color: #333; margin-bottom: 8px; }
+        .subtitle { color: #888; font-size: 14px; margin-bottom: 28px; }
+
+        /* Mode Toggle */
+        .mode-toggle { display: flex; gap: 10px; margin-bottom: 20px; }
+        .mode-btn {
+            padding: 8px 24px; border: 2px solid #4a4aff; border-radius: 6px;
+            cursor: pointer; font-size: 14px; font-weight: bold; background: white; color: #4a4aff;
+        }
+        .mode-btn.active { background: #4a4aff; color: white; }
+
+        /* Form Elements */
+        select { width: 100%; padding: 10px; margin-bottom: 16px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        textarea { width: 100%; padding: 10px; margin-bottom: 16px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; height: 120px; resize: vertical; font-family: Arial; }
+        button { background: #4a4aff; color: white; border: none; padding: 12px 28px; border-radius: 6px; font-size: 15px; cursor: pointer; width: 100%; }
+        button:hover { background: #3333dd; }
+
+        /* MCQ Options */
+        .options-container { margin-bottom: 16px; }
+        .option-label {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px 16px; margin-bottom: 8px;
+            border: 2px solid #ddd; border-radius: 6px;
+            cursor: pointer; background: white; font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .option-label:hover { border-color: #4a4aff; }
+        .option-label input[type="radio"] { margin-top: 2px; flex-shrink: 0; }
+        .option-label.selected { border-color: #4a4aff; background: #f0f0ff; }
+
+        /* Results */
+        #loading { display: none; margin-top: 16px; color: #666; text-align: center; }
+        #error { display: none; margin-top: 16px; padding: 12px; background: #ffe0e0; border: 1px solid #ffaaaa; border-radius: 6px; color: #cc0000; }
+        #results { display: none; margin-top: 32px; }
+
+        .section { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+        .section h3 { margin-bottom: 12px; color: #333; font-size: 15px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Written mode results */
+        .score { font-size: 48px; font-weight: bold; text-align: center; padding: 20px; }
+        .score.high { color: #22aa44; }
+        .score.mid  { color: #ee9900; }
+        .score.low  { color: #cc2222; }
+        .tag { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 13px; margin: 3px 4px; }
+        .tag-covered { background: #e0ffe0; color: #226622; border: 1px solid #aaddaa; }
+        .tag-missing { background: #ffe0e0; color: #882222; border: 1px solid #ffaaaa; }
+        pre { white-space: pre-wrap; font-family: Arial; font-size: 14px; line-height: 1.6; color: #444; margin: 0; }
+
+        /* MCQ result */
+        .mcq-result { text-align: center; padding: 20px; border-radius: 8px; margin-bottom: 16px; }
+        .mcq-result.correct { background: #e0ffe0; border: 2px solid #22aa44; }
+        .mcq-result.incorrect { background: #ffe0e0; border: 2px solid #cc2222; }
+        .mcq-result .result-icon { font-size: 48px; margin-bottom: 8px; }
+        .mcq-result .result-text { font-size: 20px; font-weight: bold; }
+        .mcq-result.correct .result-text { color: #22aa44; }
+        .mcq-result.incorrect .result-text { color: #cc2222; }
+        .correct-answer-box { background: #f0f0ff; border: 2px solid #4a4aff; border-radius: 8px; padding: 16px; margin-top: 12px; font-size: 14px; color: #333; line-height: 1.6; }
+        .correct-answer-box strong { color: #4a4aff; }
     </style>
 </head>
 <body>
 
-    <h2>Interview Evaluator</h2>
+    <h1>Interview Prep</h1>
+    <p class="subtitle">Practice technical interview questions and get instant feedback</p>
 
-    <select id="question">
-        <option>Loading...</option>
+    <!-- Mode Toggle -->
+    <div class="mode-toggle">
+        <button class="mode-btn active" id="writtenBtn" onclick="setMode('written')">Written Mode</button>
+        <button class="mode-btn" id="mcqBtn" onclick="setMode('mcq')">MCQ Mode</button>
+    </div>
+
+    <!-- Question Dropdown -->
+    <select id="questionSelect">
+        <option value="">Loading questions...</option>
     </select>
 
-    <textarea id="answer" placeholder="Type your answer here..."></textarea>
+    <!-- Written Mode Input -->
+    <div id="writtenInput">
+        <textarea id="userAnswer" placeholder="Type your answer here..."></textarea>
+    </div>
 
-    <button onclick="submitAnswer()">Evaluate</button>
+    <!-- MCQ Mode Input -->
+    <div id="mcqInput" style="display:none">
+        <div class="options-container" id="optionsContainer">
+            <p style="color:#888; font-size:14px;">Select a question to see options</p>
+        </div>
+    </div>
 
-    <p id="status"></p>
+    <button onclick="submitAnswer()">Submit</button>
 
-    <div id="results" style="display:none">
-        <div class="box"><b>Score:</b> <span id="score"></span> / 100</div>
-        <div class="box"><b>Covered:</b> <div id="covered"></div></div>
-        <div class="box"><b>Missing:</b> <div id="missing"></div></div>
-        <div class="box"><b>Suggestions:</b><p id="suggestions"></p></div>
-        <div class="box"><b>Improved Answer:</b><p id="improved"></p></div>
+    <p id="loading">⏳ Evaluating your answer...</p>
+    <div id="error"></div>
+
+    <!-- Results -->
+    <div id="results">
+
+        <!-- Written Results -->
+        <div id="writtenResults">
+            <div class="section">
+                <h3>Score</h3>
+                <div class="score" id="score"></div>
+            </div>
+            <div class="section">
+                <h3>Covered Concepts</h3>
+                <div id="covered"></div>
+            </div>
+            <div class="section">
+                <h3>Missing Concepts</h3>
+                <div id="missing"></div>
+            </div>
+            <div class="section">
+                <h3>What You Missed</h3>
+                <pre id="suggestions"></pre>
+            </div>
+            <div class="section">
+                <h3>Improved Answer</h3>
+                <pre id="improvedAnswer"></pre>
+            </div>
+        </div>
+
+        <!-- MCQ Results -->
+        <div id="mcqResults" style="display:none">
+            <div class="mcq-result" id="mcqResultBox">
+                <div class="result-icon" id="mcqIcon"></div>
+                <div class="result-text" id="mcqResultText"></div>
+            </div>
+            <div class="correct-answer-box" id="correctAnswerBox"></div>
+        </div>
+
     </div>
 
     <script>
-        fetch('http://localhost:8000/questions')
+        const API = 'http://localhost:8000';
+        let currentMode = 'written';
+        let allQuestions = [];
+        let currentQuestionId = null;
+
+        // Load questions
+        fetch(`${API}/questions`)
             .then(r => r.json())
             .then(data => {
+                // Shuffle
                 for (let i = data.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [data[i], data[j]] = [data[j], data[i]];
                 }
-                const select = document.getElementById('question');
+                allQuestions = data;
+                const select = document.getElementById('questionSelect');
                 select.innerHTML = '<option value="">Choose a question...</option>';
                 data.forEach(q => {
-                    select.innerHTML += `<option value="${q.text}">[${q.domain}] ${q.text}</option>`;
+                    select.innerHTML += `<option value="${q.id}" data-text="${q.text}">[${q.domain}] ${q.text}</option>`;
                 });
             });
 
-        async function submitAnswer() {
-            const question = document.getElementById('question').value;
-            const answer = document.getElementById('answer').value;
+        // When question changes load MCQ options
+        document.getElementById('questionSelect').addEventListener('change', function() {
+            const selectedId = parseInt(this.value);
+            if (!selectedId) return;
+            currentQuestionId = selectedId;
+            if (currentMode === 'mcq') loadMCQOptions(selectedId);
+        });
 
-            if (!question || !answer) {
-                document.getElementById('status').textContent = 'Please select a question and write an answer.';
+        function loadMCQOptions(questionId) {
+            fetch(`${API}/questions/options/${questionId}`)
+                .then(r => r.json())
+                .then(data => {
+                    renderOptions(data.options);
+                })
+                .catch(() => {
+                    document.getElementById('optionsContainer').innerHTML =
+                        '<p style="color:red">Could not load options for this question.</p>';
+                });
+        }
+
+        function renderOptions(options) {
+            if (!options || options.length === 0) {
+                document.getElementById('optionsContainer').innerHTML =
+                    '<p style="color:#888">No MCQ options available for this question.</p>';
                 return;
             }
 
-            document.getElementById('status').textContent = 'Evaluating...';
-            document.getElementById('results').style.display = 'none';
+            // Shuffle options
+            const shuffled = [...options];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
 
-            const res = await fetch('http://localhost:8000/evaluate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question, user_answer: answer })
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+            shuffled.forEach((opt, index) => {
+                container.innerHTML += `
+                    <label class="option-label" id="option-${index}">
+                        <input type="radio" name="mcqOption" value="${opt}">
+                        ${opt}
+                    </label>
+                `;
             });
 
-            const data = await res.json();
+            // Add click styling
+            container.querySelectorAll('.option-label').forEach(label => {
+                label.addEventListener('click', () => {
+                    container.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected'));
+                    label.classList.add('selected');
+                });
+            });
+        }
 
-            document.getElementById('score').textContent = data.score;
-            document.getElementById('covered').innerHTML = data.covered_concepts.map(c => `<span class="tag green">${c}</span>`).join('');
-            document.getElementById('missing').innerHTML = data.missing_concepts.map(c => `<span class="tag red">${c}</span>`).join('');
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('writtenBtn').classList.toggle('active', mode === 'written');
+            document.getElementById('mcqBtn').classList.toggle('active', mode === 'mcq');
+            document.getElementById('writtenInput').style.display = mode === 'written' ? 'block' : 'none';
+            document.getElementById('mcqInput').style.display = mode === 'mcq' ? 'block' : 'none';
+            document.getElementById('results').style.display = 'none';
+
+            if (mode === 'mcq' && currentQuestionId) {
+                loadMCQOptions(currentQuestionId);
+            }
+        }
+
+        async function submitAnswer() {
+            hideError();
+            document.getElementById('results').style.display = 'none';
+
+            if (currentMode === 'written') {
+                await submitWritten();
+            } else {
+                await submitMCQ();
+            }
+        }
+
+        async function submitWritten() {
+            const select = document.getElementById('questionSelect');
+            const question = select.options[select.selectedIndex]?.dataset?.text;
+            const answer = document.getElementById('userAnswer').value.trim();
+
+            if (!question) { showError('Please select a question.'); return; }
+            if (!answer) { showError('Please write your answer.'); return; }
+
+            showLoading(true);
+
+            try {
+                const res = await fetch(`${API}/evaluate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question, user_answer: answer })
+                });
+                const data = await res.json();
+                showWrittenResults(data);
+            } catch (err) {
+                showError('Something went wrong: ' + err.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function submitMCQ() {
+            if (!currentQuestionId) { showError('Please select a question.'); return; }
+
+            const selected = document.querySelector('input[name="mcqOption"]:checked');
+            if (!selected) { showError('Please select an answer.'); return; }
+
+            showLoading(true);
+
+            try {
+                const res = await fetch(`${API}/evaluate/mcq`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question_id: currentQuestionId,
+                        selected_option: selected.value
+                    })
+                });
+                const data = await res.json();
+                showMCQResults(data);
+            } catch (err) {
+                showError('Something went wrong: ' + err.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showWrittenResults(data) {
+            document.getElementById('writtenResults').style.display = 'block';
+            document.getElementById('mcqResults').style.display = 'none';
+
+            const scoreEl = document.getElementById('score');
+            scoreEl.textContent = data.score + ' / 100';
+            scoreEl.className = 'score';
+            if (data.score >= 75) scoreEl.classList.add('high');
+            else if (data.score >= 45) scoreEl.classList.add('mid');
+            else scoreEl.classList.add('low');
+
+            document.getElementById('covered').innerHTML = data.covered_concepts.length
+                ? data.covered_concepts.map(c => `<span class="tag tag-covered">${c}</span>`).join('')
+                : '<span style="color:#999">None detected</span>';
+
+            document.getElementById('missing').innerHTML = data.missing_concepts.length
+                ? data.missing_concepts.map(c => `<span class="tag tag-missing">${c}</span>`).join('')
+                : '<span style="color:#999">All concepts covered!</span>';
+
             document.getElementById('suggestions').innerHTML = data.suggestions.replace(/\n/g, '<br>');
-            document.getElementById('improved').textContent = data.improved_answer;
+            document.getElementById('improvedAnswer').textContent = data.improved_answer;
 
-            document.getElementById('status').textContent = '';
             document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showMCQResults(data) {
+            document.getElementById('writtenResults').style.display = 'none';
+            document.getElementById('mcqResults').style.display = 'block';
+
+            const box = document.getElementById('mcqResultBox');
+            const icon = document.getElementById('mcqIcon');
+            const text = document.getElementById('mcqResultText');
+
+            if (data.correct) {
+                box.className = 'mcq-result correct';
+                icon.textContent = '✅';
+                text.textContent = 'Correct!';
+            } else {
+                box.className = 'mcq-result incorrect';
+                icon.textContent = '❌';
+                text.textContent = 'Not quite!';
+            }
+
+            document.getElementById('correctAnswerBox').innerHTML =
+                `<strong>Correct Answer:</strong><br><br>${data.correct_answer}`;
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
         }
     </script>
 

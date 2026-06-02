@@ -18,6 +18,7 @@ class ReferenceAnswer(Base):
     answer = Column(String, nullable=False)
     key_concepts = Column(JSON, nullable=False)
     embedding = Column(Vector(384), nullable=False)
+    options = Column(JSON, nullable=True)
 
 class Evaluation(Base):
     __tablename__ = "evaluations"

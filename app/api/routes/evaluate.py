@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.db.models import Question, ReferenceAnswer, Evaluation
-from app.schemas.evaluation import EvaluationRequest, EvaluationResponse
+from app.schemas.evaluation import EvaluationRequest, EvaluationResponse, MCQRequest, MCQResponse
 from app.core.embeddings import get_embedding
 from app.core.similarity import compute_similarity
 from app.core.rag import generate_feedback
@@ -70,4 +70,35 @@ def evaluate(request: EvaluationRequest, db: Session = Depends(get_db)):
         missing_concepts=missing,
         suggestions=suggestions,
         improved_answer=improved_answer
+    )
+
+@router.post("/evaluate/mcq", response_model=MCQResponse)
+def evaluate_mcq(request: MCQRequest, db: Session = Depends(get_db)):
+
+    # Get reference answer for this question
+    reference = db.query(ReferenceAnswer)\
+        .filter(ReferenceAnswer.question_id == request.question_id)\
+        .first()
+
+    if not reference or not reference.options:
+        return MCQResponse(
+            correct=False,
+            selected_option=request.selected_option,
+            correct_answer="No options available for this question",
+            explanation="This question does not have MCQ options."
+        )
+
+    correct_answer = reference.options[0]
+    is_correct = request.selected_option == correct_answer
+
+    if is_correct:
+        explanation = f"Correct! {correct_answer}"
+    else:
+        explanation = f"Not quite. The correct answer is: {correct_answer}"
+
+    return MCQResponse(
+        correct=is_correct,
+        selected_option=request.selected_option,
+        correct_answer=correct_answer,
+        explanation=explanation
     )
